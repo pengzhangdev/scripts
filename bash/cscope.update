@@ -1,0 +1,39 @@
+#! /bin/bash
+
+##############################################################
+## usage: cscope.update dir1/ dir2/ dir3/ dir4/             ##
+##                                                          ##
+## The scripts will find all *.h *.cpp *.c in dirs which    ##
+## passing from cmd and generat cscope.files in WORK        ##
+## DIRECTORY                                                ##
+##                                                          ##
+## Features:                                                ##
+## 1. ignore symbol linker                                  ##
+## 2. ignore the file whose filename length > 250           ##
+##############################################################
+
+declare -a SOURCE_DIRS=("common/" "frameworks_gaia/" "pdk/" "android-rt/")
+
+echo > cscope.files
+
+if [[ $# != 0 ]]; then
+    SOURCE_DIRS=$@
+fi
+
+find -L $source_tree_rootdir -type f -name "*.h" -print0 -o -name "*.c" -print0 -o -name "*.cpp" -print0 | while IFS= read -r -d $'\0' fileName; do
+    if [ -h "$fileName" ]; then
+        continue;
+    fi
+
+    if [[ $(echo $fileName | wc -m) -gt 250 ]]; then
+        continue;
+    fi
+
+    for dir in $SOURCE_DIRS
+    do
+        if [[ $fileName == *$dir* ]]; then
+            echo "\"$fileName\"" >> cscope.files
+            break
+        fi
+    done
+done
