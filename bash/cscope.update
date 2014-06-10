@@ -20,7 +20,7 @@ if [[ $# != 0 ]]; then
     SOURCE_DIRS=$@
 fi
 
-find -L $source_tree_rootdir -type f -name "*.h" -print0 -o -name "*.c" -print0 -o -name "*.cpp" -print0 | while IFS= read -r -d $'\0' fileName; do
+find -L ./ -type f -name "*.h" -print0 -o -name "*.c" -print0 -o -name "*.cpp" -print0 | while IFS= read -r -d $'\0' fileName; do
     if [ -h "$fileName" ]; then
         continue;
     fi
