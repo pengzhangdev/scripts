@@ -26,9 +26,9 @@
 (defun icl-shell (progname &optional (args nil))
   (let (retval)
     (setf retval (sb-ext:run-program progname
-                                     (if (typep nil args)
-                                                  (list args)
-                                                  (list))
+                                     (if (null args)
+                                                  (list)
+                                                  (list args))
                                      :output *standard-output*))
     (sb-ext:process-exit-code retval)))
 
@@ -36,7 +36,7 @@
   "")
 
 (defun icl-unit-test (program &optional (args nil))
-  (if (typep nil args)
+  (if (null args)
       (format t "args is nil")
       (format t "args is not nil")))
 
