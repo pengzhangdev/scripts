@@ -24,20 +24,33 @@
   (SB-UNIX::posix-getenv name))
 
 (defun icl-shell (progname &rest args)
-  (let (retval)
-    (setf retval (sb-ext:run-program progname
-                                     (if (null args)
-                                                  (list)
-                                                  args)
-                                     :output *standard-output*))
-    (sb-ext:process-exit-code retval)))
+  "run shell commands with args.
+        if last args is stream , set the program output to stream"
+  (let (proc-obj out-stream prog-args)
+    (setf out-stream (car (reverse args)))
+    (if (streamp out-stream)
+        (setf prog-args (reverse (cdr (reverse args))))
+        (progn
+          (setf out-stream *standard-output*)
+          (setf prog-args args)))
+    (setf proc-obj (sb-ext:run-program progname prog-args
+                                       :output out-stream))
+    (sb-ext:process-exit-code proc-obj)))
 
 (defun icl-do-directory (pathname func)
   "")
 
+
+;;;; test 
 (defun icl-unit-test (program &rest args)
   (if (null args)
       (format t "args is nil")
-      (format t "~A ~%" (list args))))
-
-
+      (format t "~A ~%" (reverse args)))
+  (let (out-stream prog-args)
+    (setf out-stream (car (reverse args)))
+    (if (streamp out-stream)
+        (setf prog-args (reverse (cdr (reverse args))))
+        (progn
+          (setf out-stream *standard-output*)
+          (setf prog-args args)))
+    (format t "~A ~A ~%" out-stream prog-args)))
