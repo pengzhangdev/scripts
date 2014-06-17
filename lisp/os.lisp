@@ -78,18 +78,18 @@
 (defun icl-getopt (args)
   "parse args as shell command getopt and return a list of results
   The args can be: -f  -b f --foo=bar \"foobar\"
-  And the returned list is: ((\"f\" nil) (\"b\" \"f\") (\"foo\" \"bar\") (nil \"foorbar\"))"
+  result ===> ((\"f\" . NIL) (\"b\" . \"f\") (\"foo\" . \"bar\") (NIL . \"foorbar\") NIL)"
   (block icl-getopt-stat
     (unless (stringp args)
       (icl-log "the args should be type string"))
     (let (arg-lst)
-      (setf arg-lst (icl-split-string #\  args))
+      (setf arg-lst (icl-split-string #\  args))  ;; split the args in list with seperator ' '
       (labels ((parse (arg-lst)
                  (if (null arg-lst)
                      nil
-                     (let ((pos-e (position #\- (car arg-lst)))
+                     (let ((pos- (position #\- (car arg-lst)))
                            (token (car arg-lst)))
-                       (if (null pos-e)
+                       (if (null pos-)
                            (list (cons nil token) (parse (cdr arg-lst)))
                            (let ((pos= (position #\= token)))
                              (if (null pos=)
@@ -105,7 +105,10 @@
         (parse arg-lst)))))
 
 (defun icl-split-string (sep str)
-  "split string with split and return a list"
+  "split string with seperator(multi) and return a list
+   example: 
+        \"-a b   c --d \"
+   ===> (\"-a\" \"b\" \"c\" \"--d\")"
   (let ((result-list nil)
         (tmp-str str))
     (do ((pos (position sep tmp-str) (position sep tmp-str)))
