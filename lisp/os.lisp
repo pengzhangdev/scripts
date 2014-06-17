@@ -3,13 +3,18 @@
   (:use "COMMON-LISP")
   (:export "icl-getenv"))
 
-(defvar *icl-usrname*   "icl")
-(defvar *icl-hostname*  "icl")
-(defvar *icl-prompt*    "$")
-(defvar *icl-path*      "")
+(defvar *icl-usrname*           "icl")
+(defvar *icl-hostname*          "icl")
+(defvar *icl-prompt*            "$")
+(defvar *icl-path*              "")
+(defvar *icl-working-directory*  (sb-posix:getcwd))
 
 (defconstant icl-usrname-key "USER")
 (defconstant icl-hostname-key "HOSTNAME")
+
+(defmacro icl-log (formats &body args)
+  "output the log message"
+  `(format t ,formats ,@args))
 
 (defun icl-update-prompt-info ()
   "update *icl-usrname*  *icl-hostname* and *icl-prompt*"
@@ -57,15 +62,54 @@
             (setf out-stream *standard-output*)
             (setf prog-args args)))
       (setf proc-obj (sb-ext:run-program prog-name prog-args
-                                         :output out-stream))
+                                         :output out-stream
+                                         :directory *icl-working-directory*))
       (sb-ext:process-exit-code proc-obj))))
+
+(defun icl-cd (path)
+  "change working directory to path"
+  (sb-posix:chdir path)
+  (setf *icl-working-directory* path))
+
+(defun icl-ls (&optionale args)
+  "shell command ls implemented in clisp"
+  )
+
+(defun icl-getopt (args)
+  "parse args as shell command getopt and return a list of results
+  The args can be: -f  -b f --foo=bar \"foobar\"
+  And the returned list is: ((\"f\" nil) (\"b\" \"f\") (\"foo\" \"bar\") (nil \"foorbar\"))"
+  (block icl-getopt-stat
+    (unless (stringp args)
+      (icl-log "the args should be type string"))
+    (let (arg-lst)
+      (setf arg-lst (icl-split-string #\  args))
+      (labels ((parse (arg-lst)
+                 (if (null arg-lst)
+                     nil
+                     (let ((pos-e (position #\- (car arg-lst)))
+                           (token (car arg-lst)))
+                       (if (null pos-e)
+                           (list (cons nil token) (parse (cdr arg-lst)))
+                           (let ((pos= (position #\= token)))
+                             (if (null pos=)
+                                 (if (position #\- (car (cdr arg-lst)))
+                                     (list (cons (remove #\- token) nil) 
+                                           (parse (cdr arg-lst)))
+                                     (list (cons (remove #\- token) 
+                                                 (car (cdr arg-lst)))
+                                           (parse (cdr (cdr arg-lst)))))
+                                 (list (cons (remove #\- (subseq token 0 pos=))
+                                             (subseq token (+ 1 pos=)))
+                                       (parse (cdr arg-lst))))))))))
+        (parse arg-lst)))))
 
 (defun icl-split-string (sep str)
   "split string with split and return a list"
   (let ((result-list nil)
         (tmp-str str))
     (do ((pos (position sep tmp-str) (position sep tmp-str)))
-        ((null pos) (append (list tmp-str) result-list))
+        ((null pos) (reverse  (append (list tmp-str) result-list)))
       (if (equal pos 0)
           (setf tmp-str (subseq tmp-str (+ 1 pos)))
           (progn
@@ -80,7 +124,7 @@
 return first non-nil result"
   (block icl-maptest-stat
     (when (null lst)
-        (format t "lst is not found~%")
+       ;; (format t "lst is not found~%")
         (return-from icl-maptest-stat))
     (let (ret)
       (setf ret (funcall func str (car lst)))
