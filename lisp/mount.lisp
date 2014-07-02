@@ -4,6 +4,11 @@
 (require 'sb-unix)
 (require 'sb-ext)
 
+(load "icl/os.lisp")
+(load "base64/package.lisp")
+(load "base64/decode.lisp")
+(load "base64/encode.lisp")
+
 (defparameter *samba-config*
   '(("/mnt/ftp_cos1" "//10.27.8.60/ftp" "MTk5MDAwMzA1Cg==")
     ("/mnt/ftp_cos2" "//10.27.16.55/ftp" "MTk5MDAwMzA1Cg==")
@@ -20,88 +25,45 @@
   "mount config for all mount point
    [mount_point] [svr_path] [passwd]")
 
-(defvar *icl-path*              "")
 
 ;;;;;; main logic
 ;; (sb-ext:*posix-argv*)
-(icl-init-path)
 
-
+(defmacro do-*-mount (type)
+  "macro to return all kind of mount function
+type should be samba/sshfs"
+  `(defun ,(intern (concatenate 'string "do-"
+                                (symbol-name type)
+                                "-mount"))
+       (config)
+     "mount all filesystems"
+     (if (null (directory (nth 0 (car config))))
+         (sb-posix:mkdir (nth 0 (car config)) 0755))
+     (let ((passwd 
+            (cl-base64:base64-string-to-string 
+             (nth 2 (car config)))))
+       
+       )
+     )
+  )
 
 (defun do-mount ()
-  "search all mount config in *mount-config*"
+  "search all mount config in *mount-config* and mount all"
+  (funcall (do-*-mount 'samba) *samba-config*)
+  (funcall (do-*mount 'sshfs) *sshfs-config*)
   )
 
-;;;;;; utilities
-
-;; TODO: base64 decode
-
-(defmacro icl-log (formats &body args)
-  "output the log message"
-  `(format t ,formats ,@args))
-
-(defun icl-init-path (&optional (override t))
-  "Update the var *icl-path* from Linux/Unix $PATH"
-  (let ((str
-         (icl-split-string #\: (icl-getenv "PATH"))))
-    (if override
-        (setf *icl-path* str)
-        (setf *icl-path* (append str *icl-path*)))))
-
-(defun icl-shell (progname &rest args)
-  "run shell commands with args.
-        if last args is stream , set the program output to stream"
-  (block func-shell
-    (let ((out-stream (car (reverse args)))
-          (prog-name progname)
-          proc-obj prog-args)
-      (when (null (position #\/ prog-name))
-        ;;(format t "icl-path ~A" *icl-path*)
-        (setf prog-name (icl-maptest
-                         #'(lambda (name path)
-                             (let ((prog-name (concatenate 'string path "/" name)))
-                               (if (probe-file prog-name)
-                                   prog-name
-                                   nil)))
-                         prog-name *icl-path*)))
-      (when (null prog-name)
-           (format t "Command ~A not found" progname)
-           (return-from func-shell))
-      (if (streamp out-stream)
-          (setf prog-args (reverse (cdr (reverse args))))
-          (progn
-            (setf out-stream *standard-output*)
-            (setf prog-args args)))
-      (setf proc-obj (sb-ext:run-program prog-name prog-args
-                                         :output out-stream
-                                         :directory *icl-working-directory*))
-      (sb-ext:process-exit-code proc-obj))))
-
-(defun icl-maptest (func str lst)
-  "operates on successive elements of the lists.
-return first non-nil result"
-  (block icl-maptest-stat
-    (when (null lst)
-      ;; (format t "lst is not found~%")
-      (return-from icl-maptest-stat))
-    (let (ret)
-      (setf ret (funcall func str (car lst)))
-      (if (null ret)
-          (icl-maptest func str (cdr lst))
-          ret))))
-
-;;;;; base64
-
-(defvar *encode-table* 
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
-
-(defvar *pad-char* #\=)
-
-(defun base64-decode-string (input)
-  "decode base64"
+(defun do-unmount ()
+  "search all mount config in *mount-config* and unmount all"
   )
 
-(defun string-to-bit (input)
-  "format a string to bit"
-  )
+(or
+ (eq (car sb-ext:*posix-argv*) "mount")
+ (eq (car sb-ext:*posix-argv*) "unmount")
+ (format t "mount.lisp [mount/unmount]"))
 
+(if (eq (car sb-ext:*posix-argv*) "mount")
+    (do-mount))
+
+(if (eq (car sb-ext:*posix-argv*) "unmount")
+    (do-unmount))

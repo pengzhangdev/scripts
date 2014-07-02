@@ -9,17 +9,53 @@
 (defvar *icl-path*              "")
 (defvar *icl-working-directory*  (sb-posix:getcwd))
 
-(defconstant icl-usrname-key "USER")
-(defconstant icl-hostname-key "HOSTNAME")
+(defvar icl-usrname-key "USER")
+(defvar icl-hostname-key "HOSTNAME")
 
 (defmacro icl-log (formats &body args)
   "output the log message"
   `(format t ,formats ,@args))
 
+(defun icl-getenv (name)
+  "Get environment form OS such as linux/unix"
+  (SB-UNIX::posix-getenv name))
+
+(defun icl-split-string (sep str)
+  "split string with seperator(multi) and return a list
+   example: 
+        \"-a b   c --d \"
+   ===> (\"-a\" \"b\" \"c\" \"--d\")"
+  (let ((result-list nil)
+        (tmp-str str))
+    (do ((pos (position sep tmp-str) (position sep tmp-str)))
+        ((null pos) (reverse  (append (list tmp-str) result-list)))
+      (if (equal pos 0)
+          (setf tmp-str (subseq tmp-str (+ 1 pos)))
+          (progn
+            (setf result-list (append
+                               (list (subseq tmp-str 0 pos))
+                               result-list))
+            (setf tmp-str (subseq tmp-str (+ 1 pos))))))))
+
+
+(defun icl-maptest (func str lst)
+  "operates on successive elements of the lists.
+return first non-nil result"
+  (block icl-maptest-stat
+    (when (null lst)
+       ;; (format t "lst is not found~%")
+        (return-from icl-maptest-stat))
+    (let (ret)
+      (setf ret (funcall func str (car lst)))
+      (if (null ret)
+          (icl-maptest func str (cdr lst))
+          ret))))
+
+
 (defun icl-update-prompt-info ()
   "update *icl-usrname*  *icl-hostname* and *icl-prompt*"
   (values
-   (setf *icl-usrname* (icl-getenv icl-usorname-key))
+   (setf *icl-usrname* (icl-getenv icl-usrname-key))
    (setf *icl-hostname* (icl-getenv icl-hostname-key))
    (setf *icl-prompt* (if (equal *icl-usrname* "root")
                           #\#
@@ -32,10 +68,6 @@
     (if override
         (setf *icl-path* str)
         (setf *icl-path* (append str *icl-path*)))))
-
-(defun icl-getenv (name)
-  "Get environment form OS such as linux/unix"
-  (SB-UNIX::posix-getenv name))
 
 (defun icl-shell (progname &rest args)
   "run shell commands with args.
@@ -71,9 +103,9 @@
   (sb-posix:chdir path)
   (setf *icl-working-directory* path))
 
-(defun icl-ls (&optionale args)
-  "shell command ls implemented in clisp"
-  )
+;; (defun icl-ls (&optional args)
+;;   "shell command ls implemented in clisp"
+;;   )
 
 (defun icl-getopt (args)
   "parse args as shell command getopt and return a list of results
@@ -104,52 +136,22 @@
                                        (parse (cdr arg-lst))))))))))
         (parse arg-lst)))))
 
-(defun icl-split-string (sep str)
-  "split string with seperator(multi) and return a list
-   example: 
-        \"-a b   c --d \"
-   ===> (\"-a\" \"b\" \"c\" \"--d\")"
-  (let ((result-list nil)
-        (tmp-str str))
-    (do ((pos (position sep tmp-str) (position sep tmp-str)))
-        ((null pos) (reverse  (append (list tmp-str) result-list)))
-      (if (equal pos 0)
-          (setf tmp-str (subseq tmp-str (+ 1 pos)))
-          (progn
-            (setf result-list (append
-                               (list (subseq tmp-str 0 pos))
-                               result-list))
-            (setf tmp-str (subseq tmp-str (+ 1 pos))))))))
-
-
-(defun icl-maptest (func str lst)
-  "operates on successive elements of the lists.
-return first non-nil result"
-  (block icl-maptest-stat
-    (when (null lst)
-       ;; (format t "lst is not found~%")
-        (return-from icl-maptest-stat))
-    (let (ret)
-      (setf ret (funcall func str (car lst)))
-      (if (null ret)
-          (icl-maptest func str (cdr lst))
-          ret))))
 
 ;;;; test
-(defun icl-unit-test (program &rest args)
-  (if (null args)
-      (format t "args is nil")
-      (format t "~A ~%" (reverse args)))
-  (let (prog-name out-stream prog-args)
-    (setf out-stream (car (reverse args)))
-    (setf prog-name program)
-    (when (null (position #\/ prog-name))
-      (format t "position nil")
-      (setf prog-name (icl-maptest
-                       #'(lambda (name path)
-                           (let ((prog-name (concatenate 'string path "/" name)))
-                             (if (probe-file prog-name)
-                                 prog-name
-                                 nil)))
-                       prog-name *icl-path*)))
-    ))
+;; (defun icl-unit-test (program &rest args)
+;;   (if (null args)
+;;       (format t "args is nil")
+;;       (format t "~A ~%" (reverse args)))
+;;   (let (prog-name out-stream prog-args)
+;;     (setf out-stream (car (reverse args)))
+;;     (setf prog-name program)
+;;     (when (null (position #\/ prog-name))
+;;       (format t "position nil")
+;;       (setf prog-name (icl-maptest
+;;                        #'(lambda (name path)
+;;                            (let ((prog-name (concatenate 'string path "/" name)))
+;;                              (if (probe-file prog-name)
+;;                                  prog-name
+;;                                  nil)))
+;;                        prog-name *icl-path*)))
+;;     ))
