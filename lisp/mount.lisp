@@ -4,22 +4,41 @@
 (require 'sb-unix)
 (require 'sb-ext)
 
-(defvar *source-dirs* "")
-(defvar *icl-path*    "")
+(defparameter *samba-config*
+  '(("/mnt/ftp_cos1" "//10.27.8.60/ftp" "MTk5MDAwMzA1Cg==")
+    ("/mnt/ftp_cos2" "//10.27.16.55/ftp" "MTk5MDAwMzA1Cg==")
+    ("/mnt/lt_share" "//10.27.254.202/LT-Share" "MTk5MDAwMzA1Cg==")
+    ("/mnt/Release" "//10.27.254.202/Release" "MTk5MDAwMzA1Cg==")
+    ("/mnt/fs" "//10.27.122.187/fs" "MTk5MDAwMzA1Cg==")
+    ("/mnt/win-source" "//10.27.254.202/Win-Source" "MTk5MDAwMzA1Cg=="))
+  "mount config for all mount point
+   [mount_point] [mount_args] [passwd]")
 
-;;;;;;;;;;;;;; main logic
+(defparameter *sshfs-config*
+  '(("/buildsvr_home" "werther@10.27.122.143:/home/werther/" "d2VydGhlcgo=")
+    ("/mnt/mail_dir" "root@10.27.8.121:/mnt" "MTIzNDU2Cg=="))
+  "mount config for all mount point
+   [mount_point] [svr_path] [passwd]")
+
+(defvar *icl-path*              "")
+
+;;;;;; main logic
+;; (sb-ext:*posix-argv*)
 (icl-init-path)
 
 
 
-;;;;;;;;;;;;;; utilities 
+(defun do-mount ()
+  "search all mount config in *mount-config*"
+  )
+
+;;;;;; utilities
+
+;; TODO: base64 decode
 
 (defmacro icl-log (formats &body args)
   "output the log message"
   `(format t ,formats ,@args))
-
-(defun icl-absolute-to-relative-path (path )
-  "update a absolute path to a relative path")
 
 (defun icl-init-path (&optional (override t))
   "Update the var *icl-path* from Linux/Unix $PATH"
@@ -70,3 +89,19 @@ return first non-nil result"
       (if (null ret)
           (icl-maptest func str (cdr lst))
           ret))))
+
+;;;;; base64
+
+(defvar *encode-table* 
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
+
+(defvar *pad-char* #\=)
+
+(defun base64-decode-string (input)
+  "decode base64"
+  )
+
+(defun string-to-bit (input)
+  "format a string to bit"
+  )
+
