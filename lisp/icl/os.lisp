@@ -1,7 +1,11 @@
-(defpackage "ICL"
-  (:nicknames "ICL")
-  (:use "COMMON-LISP")
-  (:export "icl-getenv"))
+(defpackage #:cl-interaction
+  (:nicknames #:ICL)
+  (:use #:COMMON-LISP)
+  (:export #:icl-getenv
+           #:icl-shell
+           #:icl-init-path))
+
+(in-package #:ICL)
 
 (defvar *icl-usrname*           "icl")
 (defvar *icl-hostname*          "icl")
@@ -69,13 +73,16 @@ return first non-nil result"
         (setf *icl-path* str)
         (setf *icl-path* (append str *icl-path*)))))
 
-(defun icl-shell (progname &rest args)
+(defun icl-shell (progname prog-args &key ((:input stream-in) 'stream) 
+                                        ((:output stream-out) 'stream))
   "run shell commands with args.
         if last args is stream , set the program output to stream"
   (block func-shell
-    (let ((out-stream (car (reverse args)))
-          (prog-name progname)
-          proc-obj prog-args)
+    (when (not (listp prog-args))
+      (icl-log "args not a list ignore!")
+      (return-from func-shell))
+    (let ((prog-name progname)
+          proc-obj in-stream out-stream)
       (when (null (position #\/ prog-name))
         ;;(format t "icl-path ~A" *icl-path*)
         (setf prog-name (icl-maptest
@@ -88,14 +95,13 @@ return first non-nil result"
       (when (null prog-name)
            (format t "Command ~A not found" progname)
            (return-from func-shell))
-      (if (streamp out-stream)
-          (setf prog-args (reverse (cdr (reverse args))))
-          (progn
-            (setf out-stream *standard-output*)
-            (setf prog-args args)))
+      (if (null stream-out)
+          (setf out-stream *standard-output*))
+      (if (null stream-in)
+          (setf in-stream nil))
       (setf proc-obj (sb-ext:run-program prog-name prog-args
-                                         :output out-stream
-                                         :directory *icl-working-directory*))
+                                         :input  in-stream
+                                         :output out-stream))
       (sb-ext:process-exit-code proc-obj))))
 
 (defun icl-cd (path)
