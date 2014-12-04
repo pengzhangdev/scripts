@@ -1,5 +1,28 @@
 #! /usr/bin/python
 
+##################################################################
+##      Author:         pengzhang                               ##
+##      email:          pengzhangdev@gmail.com                  ##
+##      date:           2014-12-04                              ##
+##      version:        0.0.01                                  ##
+##################################################################
+
+##################################################################
+##    * This script parses the config file and download         ##
+##      VC code in target dir                                   ##
+##    * config file:                                            ##
+##      dirname==>VC command                                    ##
+##      android==>repo init -u https://android.goo....          ##
+##      kernel==>git clone ...                                  ##
+##   *  If the url is not reachable, the script fastsshproxy    ##
+##      will run, wich start a ssh tunnel and using             ##
+##      proxychains to forward the requests                     ##
+##   *  TODO:                                                   ##
+##      +  If target dir is exists, the program should get      ##
+##         the url and check whether it is matched to config    ##
+##         file. If not, clean the target dir and download      ##
+##################################################################
+
 import os
 import sys
 import shutil
@@ -8,10 +31,30 @@ import socket
 import subprocess
 import time
 import getopt
+import pexpect
 
 repo_cfg_file = "./repo.cfg"
 repo_dict = {}
 repo_src_dir = "./src/"
+
+def repo_start_proxy_server():
+    cmd = "fastsshproxy start"
+    print cmd
+    ssh = pexpect.spawn(cmd)
+    r = ''
+    try:
+        index = ssh.expect(['password: ', '.continue connecting (yes/no)?'])
+        if index == 0:
+            ssh.sendline('fastssh.com')
+        elif index == 1:
+            ssh.sendline('yes')
+    except pexpect.EOF:
+        ssh.close()
+    else:
+        r = ssh.read()
+        ssh.expect(pexpect.EOF)
+        ssh.close()
+    return r
 
 def repo_check_server(cmd):
     index = cmd.find('://')
@@ -64,6 +107,7 @@ def repo_sync(path, cmd) :
         return False
 
     if not repo_check_server(cmd):
+        repo_start_proxy_server()
         sync_cmd = 'fastsshproxy ' + sync_cmd
         proxy = 1
 
@@ -75,8 +119,6 @@ def repo_sync(path, cmd) :
                          #stderr = subprocess.STDOUT, 
                          shell=True)
     time.sleep(3)
-    if proxy == 1:
-        p.stdin.write("fastssh.com")
     #print p.stdout.read()
     p.communicate()
     #print pout
@@ -98,6 +140,7 @@ def repo_create(path, cmd) :
     if (cmd.endswith("\n")):
         cmd_new = cmd[:-1]
     if not repo_check_server(cmd) : # call proxy to download
+        repo_start_proxy_server()
         cmd_new = "fastsshproxy " + cmd_new;
         proxy = 1
 
@@ -112,8 +155,8 @@ def repo_create(path, cmd) :
                          #stderr = subprocess.STDOUT, 
                          shell=True)
     time.sleep(3)
-    if proxy == 1:
-        p.stdin.write("fastssh.com")
+    # if proxy == 1:
+    #     p.stdin.write("fastssh.com")
     #print p.stdout.read()
     p.communicate()
     #print pout
