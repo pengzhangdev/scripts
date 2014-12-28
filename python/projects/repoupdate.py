@@ -4,7 +4,7 @@
 ##      Author:         pengzhang                               ##
 ##      email:          pengzhangdev@gmail.com                  ##
 ##      date:           2014-12-04                              ##
-##      version:        0.0.01                                  ##
+##      version:        0.0.02                                  ##
 ##################################################################
 
 ##################################################################
@@ -23,6 +23,11 @@
 ##         file. If not, clean the target dir and download      ##
 ##################################################################
 
+##################################################################
+## history:                                                     ##
+##    * waiting for proxy repo for 10 hours?                    ##
+##################################################################
+
 import os
 import sys
 import shutil
@@ -32,10 +37,16 @@ import subprocess
 import time
 import getopt
 import pexpect
+import threading
+import time
+import string
+import datetime
 
 repo_cfg_file = "./repo.cfg"
 repo_dict = {}
 repo_src_dir = "./src/"
+process_list = {}
+mutex = threading.Lock()
 
 def repo_start_proxy_server():
     cmd = "fastsshproxy start"
@@ -74,7 +85,7 @@ def repo_check_server(cmd):
     host, port = urllib.splitport(host)
     if port is None:
         port = 443              # TCP port
-    print host
+    print "checking host %s " % (host)
     ipaddr = socket.gethostbyname(host)
     s = socket.socket()
     try:
@@ -95,6 +106,26 @@ def repo_cfg_parser(file) :
         key,value = line.split('==>');
         repo_dict[key] = value
 
+def repo_waiting():
+    global mutex
+    global process_list
+    now = time.clock();
+    print "now %f" % (now)
+    block = True;
+    while block:
+        for p in process_list.keys():
+            if (p.poll() == None): # running
+                block = True;
+        escape = time.clock();
+        if (escape > 10 * 60 * 60): # Quit after 10 hours 
+            block = False
+
+    for p in process_list.keys():
+        if (p.poll() == None):
+            os.kill(-os.getpgid(process_list[p]), 9)
+            print "\nKill process %d" % (process_list[p])
+            os.waitpid(process_list[p], 0);
+
 def repo_sync(path, cmd) :
     proxy = 0
     sync_cmd = ''
@@ -114,25 +145,19 @@ def repo_sync(path, cmd) :
     sync_cmd = 'cd %s; %s' % (path, sync_cmd)
 
     print sync_cmd
+
     p = subprocess.Popen(sync_cmd, stdin = subprocess.PIPE,
                          #stdout = subprocess.PIPE,
                          #stderr = subprocess.STDOUT, 
-                         shell=True)
+                         shell=True, preexec_fn = os.setpgrp)
     time.sleep(3)
-    #print p.stdout.read()
-    p.communicate()
-    #print pout
-    # while True:
-    #     buff = p.stdout.readline()
-    #     if buff == '' and p.poll() != None:
-    #         break
-    #     print buff
-
-
-    # for line in os.popen(sync_cmd).readlines():
-    #     print line
+    if (proxy == 0):
+        p.communicate()
+    else:
+        process_list[p] = p.pid;
 
 def repo_create(path, cmd) :
+    global process_list
     os.mkdir(path)
     create_cmd = ''
     cmd_new = ''
@@ -151,20 +176,12 @@ def repo_create(path, cmd) :
 
     print create_cmd
     p = subprocess.Popen(create_cmd, stdin = subprocess.PIPE,
-                         #stdout = subprocess.PIPE,
-                         #stderr = subprocess.STDOUT, 
-                         shell=True)
+                         shell=True, preexec_fn = os.setpgrp)
     time.sleep(3)
-    # if proxy == 1:
-    #     p.stdin.write("fastssh.com")
-    #print p.stdout.read()
-    p.communicate()
-    #print pout
-    # while True:
-    #     buff = p.stdout.readline()
-    #     if buff == '' and p.poll() != None:
-    #         break
-    #     print buff
+    if (proxy == 0 or cmd.startswith("repo")) :
+        p.communicate()
+    else:
+        process_list[p] = p.pid;
 
     repo_sync(path, cmd)
 
@@ -177,12 +194,15 @@ def repo_update(cfg, src_dir) :
         else:
             repo_create(target_dir, value)
 
-    # remove unused dirs
+    #remove unused dirs
     dirlist = os.listdir(repo_src_dir)
     for dir in dirlist:
         if (os.path.isdir(os.path.join(repo_src_dir, dir))):
             if not repo_dict.has_key(dir):
                 shutil.rmtree(os.path.join(repo_src_dir, dir))
+
+    # do some others
+    repo_waiting()
 
 def usage(program):
     print "%s usage:" % program
@@ -205,15 +225,14 @@ def main(argc, argv):
             usage(argv[0])
             sys.exit(1)
         elif o in ('-c', '--cfg'):
-            print a
+            print "config file %s " % (a)
             repo_cfg_file = a
         elif o in ('-d', '--directory'):
-            print a
+            print "target dir is %s " % (a)
             repo_src_dir = a
+
     repo_cfg_parser(repo_cfg_file)
     repo_update(repo_dict, repo_src_dir)
 
 if __name__ == '__main__' :
     main(len(sys.argv), sys.argv)
-    # repo_cfg_parser(repo_cfg_file)
-    # repo_update(repo_dict, repo_src_dir)
