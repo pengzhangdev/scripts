@@ -1,0 +1,153 @@
+### Makefile ---
+##
+## Filename: Makefile
+## Description: The target of this makefile is to handle muti target with muti makefile, each containing one target.
+## Author: Peng Zhang
+## Maintainer: Peng Zhang
+## Created: Sun Feb 16 20:52:38 2014 (+0800)
+## Version:
+## Last-Updated:Sun Feb 16 20:55:09 2014 (+0800)
+##           By: Peng Zhang
+##     Update #: 1
+
+######################### args define ##############################
+
+LOCAL_PATH := $(shell pwd)
+CC := gcc
+CXX := g++
+CFLAGS := -O2 -g -D_DEBUG
+CPPFLAGS := -O2 -g -fpermissive -D_DEBUG
+DEPEND_DIR := .dep
+LDFLAGS :=
+COMPILER := $(CC)
+
+LEX_YACC_SRCS := \
+	lexer.lex \
+	parser.y \
+
+LOCAL_C_SRCS := \
+        $(wildcard *.c ./src/*/*.c) \
+		$(filter %.c, $(LEX_YACC_SRCS:.lex=.c)) \
+		$(filter %.c, $(LEX_YACC_SRCS:.y=.c))
+
+LOCAL_CPP_SRCS := \
+        $(wildcard *.cpp ./src/*/*.cpp) \
+
+LOCAL_SRCS := \
+        $(LOCAL_C_SRCS) \
+        $(LOCAL_CPP_SRCS) \
+
+
+LOCAL_INCLUDES := \
+    ./include \
+#       $(shell pwd)/../log/ \
+
+LOCAL_MODULE := test
+
+
+CFLAGS += $(LOCAL_CFLAGS)
+
+CPPFLAGS += $(LOCAL_CPPFLAGS)
+
+INCLUDES := $(foreach var, $(LOCAL_INCLUDES), -I$(var))
+
+
+ifneq ($(strip $(LOCAL_CPP_SRCS)),)
+        COMPILER := $(CXX)
+endif
+
+ifeq ($(strip $(suffix $(LOCAL_MODULE))), .so)
+$(warning "build shared library")
+        LDFLAGS += -shared
+        CFLAGS += -fPIC
+        CPPFLAGS += -fPIC
+endif
+
+ifeq ($(strip $(suffix $(LOCAL_MODULE))), .a)
+$(warning "build static library")
+        LDFLAGS += -static
+endif
+
+
+################################### rules start ###################################
+all: $(LOCAL_MODULE) # submodule
+
+%.c: %.lex
+	lex --header-file=$(@:.c=.h) -o $@ $<
+
+%.c: %.y
+	bison -d -o $@ $<
+
+%.o: %.c
+	$(CC) -c $(CFLAGS) -I$(INCLUDES) $< -o $@
+
+%.o: %.cpp
+	$(CXX) -c $(CPPFLAGS) -I$(INCLUDES) $< -o $@
+
+$(DEPEND_DIR)/%.c.d: %.c
+	@set -e; rm -f $@; \
+	mkdir -p $(DEPEND_DIR)/$(dir $<); \
+	$(CC) -MM $(INCLUDES) $< > $@.$$$$; \
+	sed 's,/($*/)/.o[ :]*,/1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed -i 's,$(notdir $*).o:,$(dir $<)$(notdir $*).o:,g' $@; \
+	rm -f $@.$$$$
+
+sinclude $(foreach var, $(filter %.c.d, $(LOCAL_SRCS:.c=.c.d)), $(DEPEND_DIR)/$(var))
+
+$(DEPEND_DIR)/%.cpp.d: %.cpp
+	@set -e; rm -f $@; \
+	mkdir -p $(DEPEND_DIR)/$(dir $<); \
+	$(CC) -MM $(INCLUDES) $< > $@.$$$$; \
+	sed 's,/($*/)/.o[ :]*,/1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed -i 's,$(notdir $*).o:,$(dir $<)$(notdir $*).o:,g' $@; \
+	rm -f $@.$$$$
+
+#$(warning $(foreach var, $(filter %.cpp.d, $(LOCAL_SRCS:.cpp=.cpp.d)), $(DEPEND_DIR)/$(var)))
+sinclude $(foreach var, $(filter %.cpp.d, $(LOCAL_SRCS:.cpp=.cpp.d)), $(DEPEND_DIR)/$(var))
+
+
+$(LOCAL_MODULE) : $(filter %.o, $(LOCAL_SRCS:.c=.o)) $(filter %.o, $(LOCAL_SRCS:.cpp=.o))
+	$(COMPILER) $(CFLAGS) $(INCLUDES) $(LDFLAGS) $^ -o $@
+
+
+# subdir makefile
+submodule:
+	$(call call-subdir-makefiles,test)
+
+# add for flymake
+.PHONY: check-syntax
+ifeq ($(strip $(suffix $(CHK_SOURCES))), .cpp)
+        FLYMAKE := $(CXX)
+else
+        FLYMAKE := $(CC)
+endif
+check-syntax:
+	$(FLYMAKE) -c $(CPPFLAGS) -I$(INCLUDES) -Wall -Wextra -pedantic -fsyntax-only ${CHK_SOURCES}
+
+.PHONY: clean
+clean :
+	-rm -r $(LOCAL_MODULE)
+	-find ./ -name "*.o" -exec rm '{}' \;
+
+.PHONY: distclean
+distclean :
+	-rm -rf $(DEPEND_DIR)  $(LOCAL_MODULE)
+	-find ./ -name "*.o" -exec rm '{}' \;
+	-rm -rf $(filter %.c, $(LEX_YACC_SRCS:.lex=.c)) $(filter %.c, $(LEX_YACC_SRCS:.y=.c))
+	-rm -rf	$(filter %.h, $(LEX_YACC_SRCS:.lex=.h)) $(filter %.h, $(LEX_YACC_SRCS:.y=.h))
+
+
+########################## function define ##############################
+
+ifndef call-subdir-makefiles
+define call-subdir-makefiles
+	echo "make subdir"
+	make -C $(LOCAL_PATH)/$(1)
+endef
+endif
+
+ifndef clear-all-vars
+define clear-all-vars
+
+endef
+endif
