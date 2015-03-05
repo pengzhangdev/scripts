@@ -20,6 +20,7 @@ import os
 import time
 import sys
 import multiprocessing
+import threading
 import random
 
 # python3 support, httplib renamed to http.client in python3
@@ -58,13 +59,19 @@ def ip_random_search(list, q, t):
         # multiprocessing to speed up ?
         ip_lookup(ip, q, t)
 
-class GooglIP(object):
+class GoogleIP(threading.Thread):
+    """ A thread class to fetch available google ips
+    And Goagent can get the fastest ip from stored list.
+    The loop is running to update the list and search for
+    more IPs.
+    """
     __IPPOOL = ""
     __NSL_CMD = "nslookup -q=TXT _netblocks.google.com 8.8.8.8"
     __IDLE_TIME = 15 * 60 # seconds
     __GOOGLE_IP_FILENAME = "google_ip.txt"
 
     def __init__(self):
+        super(GoogleIP, self).__init__(name = self.__name__)
         # the elements of google_ip_list is (est, ip)
         # multithread read/write
         # There is a thread check all ips and remove invalid ones and search
@@ -79,6 +86,14 @@ class GooglIP(object):
         self.message_queue = multiprocessing.Queue()
         # random_ip_list
         self.random_ip_list = self.getRandomIPList()
+        # lock
+        self.lock = threading.Lock()
+        # thread status
+        # 0 : stop
+        # 1 : idle
+        # 2 : working
+        # 3 : cancel
+        self.status = 0
 
     def getRandomIPList(self):
         ip_list = []
@@ -117,13 +132,27 @@ class GooglIP(object):
             if (p.is_alive()):
                 p.terminate()
 
+        self.lock.aquire()
+        self.google_ip_list = []
+        self.lock.release()
         while not self.message_queue.empty():
             try:
-                # Lock
-                self.google_ip_list
+                self.lock.aquire()
+                self.google_ip_list.append(self.message_queue.get())
+                self.lock.release()
+            except:
+                pass
 
     def getIP(self):
         """ get a avaiable google ip """
+        while (len(self.google_ip_list) == 0):
+            if (self.status == 2):
+                continue
+            if (self.status == 1):
+                # notify thread start, we'd better using Conditiion instead
+                pass
+        return self.google_ip_list[0][1]
+
         if (len(self.google_ip_list) == 0):
             # for i in range(0, 10):
             #     p = multiprocessing.Process(target = ip_random_search,
@@ -168,4 +197,6 @@ class GooglIP(object):
             # Notify a thread to start to search ip address
             pass
         else:
-            
+
+    def run(self):
+        
