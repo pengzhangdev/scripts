@@ -51,13 +51,23 @@ def ip_lookup(ip, q, t):
                 q.put([et - st, ip])
         conn.close()
     except:
-        pass
+        q.put([0, "0.0.0.0"])
 
 def ip_random_search(list, q, t):
     random_list = sorted(list, key = lambda *args : random.random())
     for ip in random_list:
         # multiprocessing to speed up ?
         ip_lookup(ip, q, t)
+
+class IPNotifier(threading.Thread):
+    """ Notify to start fetch IP every 15 minus """
+    __IDLE_TIME = 15 * 60
+    def __init__(self, condition):
+        self.con = condition
+
+    def run(self):
+        time.sleep(self.__IDLE_TIME)
+        self.con.notify()
 
 class GoogleIP(threading.Thread):
     """ A thread class to fetch available google ips
@@ -94,6 +104,10 @@ class GoogleIP(threading.Thread):
         # 2 : working
         # 3 : cancel
         self.status = 0
+        # condition
+        self.con = threading.Condition()
+        # notifier
+        self.notifier = IPNotifier(self.con)
 
     def getRandomIPList(self):
         ip_list = []
@@ -127,21 +141,27 @@ class GoogleIP(threading.Thread):
             self.process_list.append(p)
             p.start()
 
-        for p in self.process_list:
-            p.join(4)
-            if (p.is_alive()):
-                p.terminate()
+        # for p in self.process_list:
+        #     p.join(4)
+        #     if (p.is_alive()):
+        #         p.terminate()
 
-        self.lock.aquire()
-        self.google_ip_list = []
-        self.lock.release()
-        while not self.message_queue.empty():
-            try:
-                self.lock.aquire()
-                self.google_ip_list.append(self.message_queue.get())
-                self.lock.release()
-            except:
-                pass
+        # self.lock.aquire()
+        # self.google_ip_list = []
+        # self.lock.release()
+        # while not self.message_queue.empty():
+        #     try:
+        #         self.lock.aquire()
+        #         self.google_ip_list.append(self.message_queue.get())
+        #         self.lock.release()
+        #     except:
+        #         pass
+
+    def searchGoogleIP(self, ip):
+        p = multiprocessing.Process(target = ip_lookup,
+                                    args = (ip, self.message_queue,2))
+        self.process_list.append(p)
+        p.start()
 
     def getIP(self):
         """ get a avaiable google ip """
@@ -192,11 +212,27 @@ class GoogleIP(threading.Thread):
             return None
         return valid_ip
 
-    def getFastIP(self):
-        if (len(self.google_ip_list) == 0):
-            # Notify a thread to start to search ip address
-            pass
-        else:
-
     def run(self):
-        
+        # start check google_ip_list and fetch random available ip
+        # appending to google_ip_list
+
+        # check google_ip_list
+        self.checkGoogleIP()
+        self.random_ip_list = sorted(self.random_ip_list, key = lambda *args : random.random())
+        index = 0
+        for index in range(0, 11):
+            self.searchGoogleIP(self.random_ip_list[index])
+
+        self.lock.aquire()
+        self.google_ip_list = []
+        self.lock.release()
+        while (self.google_ip_list.size() < 20):
+            if (self.message_queue.empty()):
+                continue;
+            try:
+                obj = self.message_queue.get()
+                if (obj[1] != "0.0.0.0"):
+                    self.google_ip_list.append(obj)
+                  
+            except:
+                pass
