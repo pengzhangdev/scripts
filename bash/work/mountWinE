@@ -1,0 +1,68 @@
+#! /bin/bash
+
+usrname=wertherzhang
+passwd=19900305
+
+declare -A mount_args=(["/mnt/ftp_cos1"]="//10.27.8.60/ftp" ["/mnt/ftp_cos2"]="//10.27.16.55/ftp" ["/mnt/lt_share"]="//10.27.254.202/LT-Share" ["/mnt/Release"]="//10.27.254.202/Release" ["/mnt/fs"]="//10.27.122.187/fs" ["/mnt/win-source"]="//10.27.254.202/Win-Source")
+declare -a mount_points=("/mnt/ftp_cos1" "/mnt/ftp_cos2" "/mnt/lt_share" "/mnt/Release" "/mnt/fs" "/mnt/win-source")
+
+################################
+# mount cifs fs to mount_point #
+# $1 mount_arg;$2 mount_point  #
+################################
+function mount_win 
+{
+    if [ ! -d $2 ]; then
+        mkdir -p $2
+    fi
+
+    mount -t cifs $1 $2 -o user=$usrname -o password=$passwd
+}
+
+################################
+# unmount all win fs           #
+# $1 mount_point               #
+################################
+function unmount_win
+{
+    if [ -d $1 ]; then
+        umount $1
+    fi
+}
+
+function do_mount
+{
+    for mount_point in ${mount_points[@]}
+    do
+        mount_win ${mount_args[$mount_point]} $mount_point
+        
+        if [[ $? == 0 ]]; then
+            echo "mount " ${mount_args[$mount_point]} " at " $mount_point " successfully!"
+        else
+            echo "mount " ${mount_args[$mount_point]} " at " $mount_point " failed!"
+        fi
+    done
+}
+
+function do_unmount
+{
+    for mount_point in ${mount_points[@]}
+    do 
+        unmount_win $mount_point
+    done
+}
+
+#### main start ####
+if [[ $1 == "mount"  ]]; then
+    do_mount
+elif [[ $1 == "unmount" ]]; then
+    do_unmount
+else
+    echo "Unknown args"
+fi
+
+exit 0
+
+############################## bash env setup ######################
+
+
