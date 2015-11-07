@@ -1,0 +1,61 @@
+#!/bin/bash
+
+declare -A mount_list
+
+function on_device_added()
+{
+    device=$1
+
+    blkid_device=(`blkid | tr '\t' ' ' | tr -s ' ' | cut -d " " -f 1 | tr ':' ' ' | tr -s ' ' | cut -d " " -f 1`)
+    blkid_label=(`blkid | tr '\t' ' ' | tr -s ' ' | cut -d " " -f 2  | tr '=' ' ' | tr '"' ' ' |tr -s ' ' | cut -d " " -f 2`)
+    echo "add ${#blkid_device[@]}"
+    for (( i=0; i<${#blkid_device[@]}; i++ ))
+    do
+	if [[ $device == ${blkid_device[$i]} ]]; then
+	    mount_point=/mnt/${blkid_label[$i]}
+	    echo "add ${blkid_device[$i]}:$mount_point"
+	    mkdir -p $mount_point
+	    mount_list+=(["${blkid_device[$i]}"]="$mount_point")
+	    mount ${blkid_device[$i]} $mount_point
+	fi
+    done
+
+}
+
+function on_device_remove()
+{
+    device=$1
+
+    echo "remove $device:${mount_list[$device]}"
+    if [ -z ${mount_list[$device]} ]; then
+	echo "$device not mounted by us"
+    else
+	#echo "rm -r ${mount_list[$device]}"
+	umount ${mount_list[$device]}
+	rm -r ${mount_list[$device]}
+	mount_list=( ${mount_list[@]/${mount_list[$device]}/} )
+    fi
+}
+
+
+######################################
+# main:                              #
+######################################
+
+mkfifo /dev/shm/inotifypipe
+inotifywait -m /dev 2>&- > /dev/shm/inotifypipe &
+
+while IFS= read -r -d $'\n' event
+do
+    operation=`echo "$event" | cut -d " " -f 2`
+    device=/dev/`echo "$event" | cut -d " " -f 3`
+#    echo "op="$operation" device="$device
+
+    if [[ $operation == "CREATE" ]]; then
+	echo $device
+	on_device_added $device
+    elif [[ $operation == "DELETE" ]]; then
+	on_device_remove $device
+    fi
+        # do something with the file
+done < /dev/shm/inotifypipe

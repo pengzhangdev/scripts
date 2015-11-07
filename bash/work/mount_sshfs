@@ -1,0 +1,68 @@
+#! /usr/bin/env bash
+
+#echo "d2VydGhlcgo=" | base64 -d | sshfs -p 88 werther@10.27.122.143:/home/werther/ /buildsvr_home/ -o password_stdin
+
+declare -a mount_points=("/buildsvr_home" "/mnt/mail_dir")
+declare -A svr_path=(["/buildsvr_home"]="werther@10.27.254.109:/home/werther/" ["/mnt/mail_dir"]="root@10.27.8.121:/mnt")
+declare -A mount_passwd=(["/buildsvr_home"]="d2VydGhlcgo=" ["/mnt/mail_dir"]="MTIzNDU2Cg==")
+
+##########################################
+# mount cifs fs to mount_point           #
+# $1 passwd;$2 svr_path ;$3 mount_point  #
+##########################################
+function mount_sshfs
+{
+    if [ ! -d $3 ]; then
+        mkdir -p $3
+    fi
+
+    echo $1 | base64 -d | sshfs $2 $3 -o password_stdin
+    if [[ $? != 0 ]]; then
+        echo $1 | base64 -d | sshfs $2 $3 -o password_stdin
+    fi
+}
+
+################################
+# unmount all win fs           #
+# $1 mount_point               #
+################################
+function unmount_sshfs
+{
+    if [ -d $1 ]; then
+        umount $1
+    fi
+}
+
+function do_mount
+{
+    for mount_point in ${mount_points[@]}
+    do
+        mount_sshfs ${mount_passwd[$mount_point]} ${svr_path[$mount_point]} $mount_point
+        
+        if [[ $? == 0 ]]; then
+            echo "mount " ${svr_path[$mount_point]} " at " $mount_point " successfully!"
+        else
+            echo "mount " ${svr_path[$mount_point]} " at " $mount_point " failed!"
+        fi
+    done
+}
+
+function do_unmount
+{
+    for mount_point in ${mount_points[@]}
+    do 
+        unmount_sshfs $mount_point
+    done
+}
+
+#### main start ####
+if [[ $1 == "mount"  ]]; then
+    do_mount
+elif [[ $1 == "unmount" ]]; then
+    do_unmount
+else
+    echo "Unknown args"
+fi
+
+exit 0
+

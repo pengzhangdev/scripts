@@ -1,0 +1,46 @@
+#! /bin/bash
+
+repo_path=~/bin/
+repocfg=${repo_path}/repocfg
+repocmd=${repo_path}/repo.1
+current_wp=`pwd`
+
+function run_cmds()
+{
+    echo "$@"
+    $@
+}
+
+function check_repo_url()
+{
+    if [ -d ${current_wp}/.repo/manifests ]; then
+        pushd ${current_wp}/.repo/manifests > /dev/null
+        matched=`git config --get remote.origin.url | grep wertherzhang | wc -l`
+        popd > /dev/null
+        if [[ $matched > 0 ]]; then
+            return 1
+        else
+            return 0
+        fi
+    else
+        return 0
+    fi
+}
+
+if [[ $1 == "sync" ]]; then
+    check_repo_url
+    if [[ $? == 1 ]]; then
+        run_cmds ${repocfg} config pull gerrit02.china-liantong.com:29000
+        #run_cmds ${repocmd} forall -c "git pull"
+        #exit 0
+    fi
+fi
+
+if [[ $1 == "upload" ]]; then
+    check_repo_url
+    if [[ $? == 1 ]]; then
+        run_cmds ${repocfg} config push gerrit.china-liantong.com:29000
+    fi
+fi
+
+run_cmds ${repocmd} $@
