@@ -1,0 +1,57 @@
+The implementation of VirtualLan
+
+BASIC META DATA FORMAT:
+heartbeat:           05 05 0
+tcp request:         05 01 00 03(name) xx(name len) [name in ascii] xx xx(port)
+                     05 01 00 01(ipaddr) xx xx xx xx(ip in ascii) xx xx(port)
+udp request:         05 03 00 03(name) xx(name len) [name in ascii] xx xx(port)
+                     05 03 00 01(ipaddr) xx xx xx xx(ip in ascii) xx xx(port)
+msg channel          05 04 00 01(pair id) xx xx(pair id)
+control channel      05 04 00 02
+virtual ip msg       05 04 00 03(name) xx(name len) [name in ascii]
+                     05 04 00 04(ipaddr) xx xx xx xx(ip in ascii)
+
+
+onInit
+==> local
+  1. create control channel to relay server
+  2. waiting for virtual ip [virtual ip msg]
+  3. create local listener and show local virtual ip
+
+==> relay server
+  1. create listener
+
+onConnected:
+==> local
+  ==> local app connect through local VL
+    1. accept from listener
+    2. create a msg channel to relay server
+    3. send [tcp request] to relay server with target name (virtual ip)
+    4. bind the new msg channel and the accepted socket
+  ==> local VL recv the connection request from relay server
+    1. create a msg channel to relay server
+    2. send [create msg channel] to relay server
+    3. create a local connection to local server(such as ssh server)
+    4. bind the new msg channel and the new connection
+==> relay server
+  1. add to event handler pool
+
+onMessage:
+==> local
+  1. Bypass all the message to binding ender
+==> relay server
+  1. if a new control channel [control channel], allocate a new virtual ip for it
+  2. add to mapper on the control channel and new Virtual IP
+  ==> control channel
+    1. the message contains [control channel], allocate a new virtual
+       ip
+    2. reply the virtual ip [virtual ip msg]to client
+    3. bind virtual ip to the control channel
+  ==> message channel
+    1. the message contains [tcp request], find control channel
+    2. send [msg channel] through control channel and add pair id to a
+       tmp mapper binding with the new msg channel.
+    3. the message contains [msg channel], find the pair id
+    4. bind tow message channel and remove the pair id from tmp mapper
+    5. the message does not contain meta data, find the msg channel in
+       mapper and just bypass
