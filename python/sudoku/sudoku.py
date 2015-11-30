@@ -16,6 +16,7 @@
 import sys
 import os
 import math
+import copy
 
 class Sudoku(object):
     def __init__(self):
@@ -156,6 +157,10 @@ class Sudoku(object):
 
         return sudoku
 
+    def __dump_stash(self, sudoku):
+        for si in range(0, 9):
+            print sudoku[si]
+
     def __DFS(self, cases, sudoku):
         num_used = 0b111111111
         if len(cases) == 0:
@@ -171,15 +176,18 @@ class Sudoku(object):
         while True:
             num = self.__get_last_bit_1(cell_case & sudoku[pos_i][pos_j])
             if (num == 0):
-                #print '(%d, %d) = %s' % (pos_i, pos_j, bin(case[2]))
+                #print 'No more case (%d, %d) = %s' % (pos_i, pos_j, bin(case[2]))
+                #self.__dump_stash(sudoku)
                 break
             if self.__is_num_legal(pos_i, pos_j, num, sudoku) == False:
                 #print 'Num test Failed (%d, %d) = %s' %(pos_i, pos_j, num)
+                #self.__dump_stash(sudoku)
                 cell_case = cell_case & (num_used & ~( 1 << (num - 1)))
                 continue
             if self.__DFS(cases[1:]
-                          , self.__update_related_box(pos_i, pos_j, num, sudoku)) == False:
+                          , self.__update_related_box(pos_i, pos_j, num, copy.deepcopy(sudoku))) == False:
                 #print 'DFS Failed (%d, %d) = %s' %(pos_i, pos_j, num)
+                #self.__dump_stash(sudoku)
                 cell_case = cell_case & (num_used & ~( 1 << (num - 1)))
                 continue
             self.__steps.append((pos_i, pos_j, num))
@@ -189,7 +197,7 @@ class Sudoku(object):
     def decode(self):
         self.__pre_init()
         self.dump()
-        if self.__DFS(self.__case_list, self.__sudoku) == False:
+        if self.__DFS(self.__case_list, copy.deepcopy(self.__sudoku)) == False:
             print 'No answer for this sudoku'
             return
 
