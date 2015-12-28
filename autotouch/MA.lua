@@ -8,9 +8,9 @@ function touchPos(x, y)
   math.randomseed(x/y);
   id = math.random();
   touchDown(id, x, y);
-  usleep(59973.29);
+  usleep(79973.29);
   touchUp(id, x, y);
-  usleep(59973.29);
+  usleep(79973.29);
 end
 
 function touchPairs(result)
@@ -69,11 +69,16 @@ end
 function waitingFlip()
   usleep(259973.29)
 end
+
+function dungeon_button()
+  local result = findColors({{16645527,0,0}, {14210427,4,-2}, {16645527,-10,0}, {16777113,-10,3}, {16777113,-1,2}, {16711320,-1,3}, {16777113,-6,1}, {16645527,-10,16}, {16777113,-10,18}, {16777112,-1,18}, {16777113,-1,16}, {16777113,-6,17}, {16777132,-12,28}, {16777132,-12,30}, {15987344,-1,27}, {16777113,-2,30}, {16448186,-13,36}, {16777151,-13,39}, {16448149,6,36}, {16777113,6,39}, {16777113,-5,38}, {16777113,0,38}, {16777122,-11,71}, {16711320,-6,72}, {16777113,-7,76}, {16777132,-12,79}, {16777132,-12,81}, {16777113,5,80}, {16777113,7,78}, {16777113,-2,78}, {16777113,-5,80}, {16777113,-2,96}, {16777113,-2,97}}, 0, {30, 483, 98, 193});
+  return result
+end
   
 function quickGame()
   log("quickGame")
   --[[ click game button ]]
-  local result = findColors({{16645527,0,0}, {14210427,4,-2}, {16645527,-10,0}, {16777113,-10,3}, {16777113,-1,2}, {16711320,-1,3}, {16777113,-6,1}, {16645527,-10,16}, {16777113,-10,18}, {16777112,-1,18}, {16777113,-1,16}, {16777113,-6,17}, {16777132,-12,28}, {16777132,-12,30}, {15987344,-1,27}, {16777113,-2,30}, {16448186,-13,36}, {16777151,-13,39}, {16448149,6,36}, {16777113,6,39}, {16777113,-5,38}, {16777113,0,38}, {16777122,-11,71}, {16711320,-6,72}, {16777113,-7,76}, {16777132,-12,79}, {16777132,-12,81}, {16777113,5,80}, {16777113,7,78}, {16777113,-2,78}, {16777113,-5,80}, {16777113,-2,96}, {16777113,-2,97}}, 0, {30, 483, 98, 193});
+  local result = dungeon_button()
   touchPairs(result)
   waitingFlip()
   
@@ -367,6 +372,11 @@ function joinRoom()
     local inGameRoom = false
   	waitingConnection()
     
+    local result = dungeon_button()
+    if next(result) ~= nil then
+      return false
+    end
+    
     if joinCertainRoom(retry) == true then
       retry = 3
     end
@@ -456,16 +466,16 @@ function joinRoom()
 end
 
 function waitingGameOver()
-  local retry = 3
+  local retry = 10
   local first_time = 1
   while true
   do
     local wait = 0
-    if isInBattle() then
+    if isInBattle(false) then
       log("[INFO] waitingGameOver in Battle")
       
       wait = 1
-      retry = 3
+      retry = 10
       if first_time == 1 then
         first_time = 0
         log("[INFO] usleep(30000000)")
@@ -489,7 +499,7 @@ function waitingGameOver()
       log("[INFO] found shar button")
       touchPos(92, 1724)
       wait = 1
-      retry = 3
+      retry = 10
     end
     
     --[[ skip frends ]]
@@ -497,6 +507,9 @@ function waitingGameOver()
     if next(result) ~= nil then
       log("[INFO] skip friends")
       touchPairs(result)
+      waitingFlip()
+      waitingConnection()
+      return true
     end
     
     --[[ skip die info ]]
@@ -504,6 +517,7 @@ function waitingGameOver()
     if next(result) ~= nil then
       log("[INFO] skip die info")
       touchPairs(result)
+      waitingFlip()
       waitingConnection()
       return true
     end
@@ -513,6 +527,7 @@ function waitingGameOver()
     if next(result) ~= nil then
       log("[INFO] kick by server")
       touchPairs(result)
+      waitingFlip()
       waitingConnection()
       return false
     end
@@ -525,7 +540,7 @@ function waitingGameOver()
         return false
       end
     else
-      retry = 3
+      retry = 10
     end
   waitingConnection()
   end
@@ -593,10 +608,20 @@ function startMA()
     appRun(MANAME);
     usleep(10000000)
     touchPos(612, 866);
+  end
+  
+  while true 
+  do
+    touchPos(542, 1013);
     waitingFlip()
-    waitingConnection()
-    waitingFlip()
-    waitingConnection()
+    local result = dungeon_button()
+    if next(result) ~= nil then
+      log("[INFO] start MA done")
+      break
+    else
+      log("[INFO] Waiting MA ready")
+      waitingConnection()
+    end
   end
 end
 
@@ -657,6 +682,17 @@ function share_button()
     log("[INFO] found share button")
     return true
   end
+  
+  return false
+end
+
+function die_button()
+      --[[ skip die info ]]
+  local result = findColors({{16316667,0,0}, {16448252,4,6}, {16383228,-14,23}, {16777215,-20,20}, {16777215,-45,4}, {16777215,-41,2}, {16777215,-24,20}, {16777215,-27,29}, {16777215,-45,44}, {16777215,-42,48}, {16580350,-24,32}, {16777215,-27,22}, {16580350,-27,23}, {16777215,-15,29}, {16777215,-16,32}, {16777215,3,45}, {16777215,2,49}, {21930,-9,26}, {1136042,-21,12}, {21930,-33,24}, {21930,-21,36}}, 0, {997, 1827, 83, 84});
+    if next(result) ~= nil then
+      log("[INFO] skip die info")
+      return true
+    end
   
   return false
 end
@@ -829,7 +865,7 @@ function Card:update()
           self.single = false
           self.onlyself = true
         end
-        local c = getColor(self.pos[1] + 125, self.pos[2] - 104)
+        local c = getColor(self.pos[1] + 124, self.pos[2] - 104)
         local r, g, b = intToRgb(c)
         self.color = color2name({r, g, b})
         log(string.format("[INFO] %s ==> cost %d == index %d color = %s", self.name, self.cost, i, self.color))
@@ -846,6 +882,7 @@ function Card:play()
     touchPos(self.pos[1], self.pos[2])
     if self.onlyself then
       touchPos(self.target[3][1], self.target[3][2])
+      usleep(500000)
     end
     if self.single then
       local pos = find_single(-1)
@@ -853,6 +890,7 @@ function Card:play()
     end
     if self.single == false and self.onlyself == false then
       touchPos(self.target[1][1], self.target[1][2])
+      usleep(500000)
     end
     self.cost = 0
   end
@@ -992,21 +1030,21 @@ function sort_card(chain_color)
             break
           end
         end
-        if cost_total >= 3 then
-          local card = search_card(3, false, chain_color)
-          if card ~= nil then
-            table.insert(card_to_play, card)
-            cost_total = cost_total - card:getCost()
-            cure = cure - 1
-            break
-          end
-        end
         if cost_total >= 2 then
           local card = search_card(2, false, chain_color)
           if card ~= nil then
             table.insert(card_to_play, card)
             cost_total = cost_total - card:getCost()
             cure = cure -1
+            break
+          end
+        end
+        if cost_total >= 3 then
+          local card = search_card(3, false, chain_color)
+          if card ~= nil then
+            table.insert(card_to_play, card)
+            cost_total = cost_total - card:getCost()
+            cure = cure - 1
             break
           end
         end
@@ -1020,7 +1058,7 @@ function sort_card(chain_color)
           end
         end
         if cost_total >= 1 then
-          local card = search_card(2, false, chain_color)
+          local card = search_card(1, false, chain_color)
           if card ~= nil then
             table.insert(card_to_play, card)
             cost_total = cost_total - card:getCost()
@@ -1030,8 +1068,8 @@ function sort_card(chain_color)
         end
       end
       break
-      chain = false
     end
+    chain = false
     if last_cost == cost_total then
       break
     end
@@ -1040,7 +1078,10 @@ function sort_card(chain_color)
 end
 
 function skip_this_turn()
-  touchPairs(skip_button())
+  local result = skip_button()
+  if result then
+  	touchPairs(skip_button())
+  end
   touchPos(327, 1905);
   usleep(500000)
   touchPos(552, 740);
@@ -1048,6 +1089,12 @@ end
 
 function is_internal_autobattle_enable()
   local result = findColors({{16777037,0,0}, {16777035,-17,0}, {16711241,-18,21}, {16644934,1,21}, {16777038,3,9}, {16579916,-6,11}, {16053322,-12,11}, {16777045,-6,33}, {15397189,1,34}, {16777036,-17,31}, {16776782,-18,44}, {16777045,-16,39}, {16777039,-2,47}, {16777036,-3,54}, {16579663,-19,53}, {948007,-14,51}}, 0, {88, 1829, 77, 186});
+  if next(result) ~= nil then
+    log("[INFO] internal autobattle enabled")
+    return true
+  end
+  
+  local result = findColors({{5561685,0,0}, {4513123,5,0}, {4840801,1,-2}, {4512852,-2,160}, {4054101,4,160}, {965450,26,114}, {637759,26,42}}, 0, {88, 1829, 77, 186});
   if next(result) ~= nil then
     log("[INFO] internal autobattle enabled")
     return true
@@ -1073,7 +1120,7 @@ end
 
 function auto_battle()
   local turn = 0
-  local retry = 60
+  local retry = 20
   local chain_color = nil
   while retry > 0 do
 
@@ -1100,15 +1147,18 @@ function auto_battle()
       end
     end
 
-    if isInRoom() then
+    if isInBattle(false) then
+      retry = 20
       usleep(1000000)
     else
       retry = retry - 1
       usleep(1000000)
     end
 
-    if share_button() then
-      return false
+    if share_button() or die_button() then
+      if not isInBattle(false) then
+        return false
+      end
     end
 
   end
