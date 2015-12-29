@@ -365,6 +365,7 @@ end
 function joinRoom()
   local retry = 3
   local last_inRoom = false
+  local disable_search = false
   local room_broken_quit = false
   while true
   do
@@ -376,9 +377,10 @@ function joinRoom()
     if next(result) ~= nil then
       return false
     end
-    
-    if joinCertainRoom(retry) == true then
-      retry = 3
+    if disable_search == false then
+      if joinCertainRoom(retry) == true then
+        retry = 3
+      end
     end
     
     --[[  if got the message No Room Found, tap and waiting to conformPlayer()  ]]
@@ -404,6 +406,7 @@ function joinRoom()
     if result then
       log("[INFO] in Room")
       inGameRoom = true
+      disable_search = true
       wait = wait + 1
       if wait > 20 then
         touchPairs(result)
@@ -635,7 +638,7 @@ function killMA()
 end
 
 function captureErrorPage()
-  image=os.date("%Y-%m-%d-%H:%M:%S")..".bmp"
+  image="errors/" .. os.date("%Y-%m-%d-%H:%M:%S") .. ".bmp"
   screenshot (image, nil);
 end
 
@@ -743,6 +746,18 @@ function find_single(partner)
   local self_life = get_life(self_pos, self_life_scope, split)
   log("[INFO] 1: " .. partner1 .. " 2: " .. partner2 .. " 3: " .. partner3 .. " 4: "..self_life)
   
+  if partner1 <= -10 then
+    partner1 = 100
+  end
+  
+  if partner2 <= -10 then
+    partner2 = 100
+  end
+  
+  if partner3 <= -10 then
+    partner3 = 100
+  end
+  
   if partner == 0 then
     return (100 - partner1),(100 - partner2), (100 - partner3), (100 - self_life)
   end
@@ -831,14 +846,15 @@ function get_cost_total()
 end
 
 --[[ class card ]]
-Card = {name = '0', cost = 0, selects = false, single = false, onlyself = false, pos = nil, color = "", target={{771, 321}, {1442, 40}, {141, 105}} --[[1: full cure 2: single 3: onlyself ]]}
+Card = {name = '0', cost = 0, selects = false, single = false, onlyself = false, pos = nil, color = "", color_pos = nil, target={{771, 321}, {1442, 40}, {141, 105}} --[[1: full cure 2: single 3: onlyself ]]}
 Card.__index = Card
 
-function Card:new(name, pos)
+function Card:new(name, pos, color_pos)
   local self = {}
   setmetatable(self, Card)
   self.pos = pos
   self.name = name
+  self.color_pos = color_pos
   return self
 end
 
@@ -865,13 +881,17 @@ function Card:update()
           self.single = false
           self.onlyself = true
         end
-        local c = getColor(self.pos[1] + 124, self.pos[2] - 104)
+        local c = getColor(self.color_pos[1], self.color_pos[2])
         local r, g, b = intToRgb(c)
         self.color = color2name({r, g, b})
-        log(string.format("[INFO] %s ==> cost %d == index %d color = %s", self.name, self.cost, i, self.color))
+        log(string.format("[INFO] %s ==> cost %d == index %d color = %s(%d, %d, %d)", self.name, self.cost, i, self.color, r, g, b))
       end
     end
   end
+end
+
+function Card:reset()
+  self.cost = 0
 end
 
 function Card:play()
@@ -916,11 +936,11 @@ function Card:getColor()
   return self.color
 end
 
-card1 = Card:new("Card1", {260, 534})
-card2 = Card:new("Card2", {255, 809})
-card3 = Card:new("Card3", {271, 1081})
-card4 = Card:new("Card4", {218, 1345})
-card5 = Card:new("Card5", {254, 1603})
+card1 = Card:new("Card1", {260, 534}, {375, 428})
+card2 = Card:new("Card2", {255, 809}, {375, 699})
+card3 = Card:new("Card3", {271, 1081}, {375, 971})
+card4 = Card:new("Card4", {218, 1345}, {375, 1241})
+card5 = Card:new("Card5", {254, 1603}, {375, 1509})
 CARD_LIST = {card1, card2, card3, card4, card5}
 function search_card(cost, single, color)
   --[[ search card with cost ]]
@@ -956,7 +976,7 @@ function get_cure_level()
   end
   while total_lost > 0
   do
-    total_lost = total_lost - 100
+    total_lost = total_lost - 50
     cure = cure + 1
   end
 
@@ -975,6 +995,7 @@ function sort_card(chain_color)
   --[[ life full     list: 5C > 1C > 2C > 3C ]]
   local card_to_play = {}
   local cost_total = get_cost_total()
+  local cost_origin = cost_total
   local cure = get_cure_level()
   local chain = false
   if cure == 0 then
@@ -985,7 +1006,7 @@ function sort_card(chain_color)
   do
     local last_cost = cost_total
     while true do
-      if cost_total >= 5 and cure == 0 then
+      if cost_total >= 5 and cure <= 1 then
         local card = search_card(5, false, chain_color)
         if card ~= nil then
           table.insert(card_to_play, card)
@@ -993,16 +1014,17 @@ function sort_card(chain_color)
           break
         end
       end
-      if cure == 0 then
+      if cure <= 1 and cost_total >= 1 then
         local card = search_card(1, false, chain_color)
         if card ~= nil then
           table.insert(card_to_play, card)
           cost_total = cost_total - card:getCost()
+          cure = cure - 1
           break
         end
       end
     
-      if cure == 0 and cost_total <= 3 and cost_total > 0 then
+      if cure <= 0 and cost_total <= 3 and cost_total > 1  and cost_origin <= 5 then
         local card = search_card(2, true, chain_color)
         if card ~= nil then
           table.insert(card_to_play, card)
@@ -1011,7 +1033,7 @@ function sort_card(chain_color)
         end
       end
       
-      if cure == 0 and chain == true then
+      if cure <= 0 and chain == true then
         local card = search_card(3, false, chain_color)
         if card ~= nil then
           table.insert(card_to_play, card)
@@ -1019,14 +1041,14 @@ function sort_card(chain_color)
           break
         end
       end
-    
+
       if cure > 0 then
         if cost_total >= 4 then
           local card = search_card(4, false, chain_color)
           if card ~= nil then
             table.insert(card_to_play, card)
             cost_total = cost_total - card:getCost()
-            cure = cure - 1
+            cure = cure - 2
             break
           end
         end
@@ -1035,7 +1057,7 @@ function sort_card(chain_color)
           if card ~= nil then
             table.insert(card_to_play, card)
             cost_total = cost_total - card:getCost()
-            cure = cure -1
+            cure = cure -2
             break
           end
         end
@@ -1044,7 +1066,7 @@ function sort_card(chain_color)
           if card ~= nil then
             table.insert(card_to_play, card)
             cost_total = cost_total - card:getCost()
-            cure = cure - 1
+            cure = cure - 2
             break
           end
         end
@@ -1053,7 +1075,7 @@ function sort_card(chain_color)
           if card ~= nil then
             table.insert(card_to_play, card)
             cost_total = cost_total - card:getCost()
-            cure = cure -1
+            cure = cure -2
             break
           end
         end
@@ -1106,7 +1128,7 @@ function is_internal_autobattle_enable()
     log("[INFO] enable internal autobattle")
     return true
   end
-    
+
   return false
 end
 
@@ -1122,6 +1144,10 @@ function auto_battle()
   local turn = 0
   local retry = 20
   local chain_color = nil
+  for i, v in pairs(CARD_LIST) do
+    v:reset()
+  end
+  
   while retry > 0 do
 
     if skip_button() then
@@ -1131,6 +1157,7 @@ function auto_battle()
       if chain_color == nil then
         chain_color = get_chain_color()
       end
+      --captureErrorPage()
       for i, v in pairs(CARD_LIST) do
         v:update()
       end
