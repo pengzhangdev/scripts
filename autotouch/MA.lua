@@ -173,8 +173,68 @@ function networkError()
   end
 end
 
-function findRoomLevel5()
+function findSpecialRoom()
+  local rect = {355, 379, 900, 114}
+
+  local result
+  --[[ 贝兰 ]]
+  result = findColors({{16777215,0,0}, {16777215,24,1}, {16777215,24,27}, {16777215,0,28}, {16777215,-3,18}, {16777215,-11,31}, {16777215,-11,-3}, {16777215,1,12}, {16777215,17,14}, {16777215,25,46}, {16777215,20,51}, {16777215,24,70}, {16777215,14,64}, {16777215,14,43}, {16777215,14,75}, {16777215,3,46}, {16777215,-10,41}, {16777215,-10,76}, {16777215,3,73}, {3621168,9,21}, {3686448,8,7}}, 0, rect);
+  if next(result) ~= nil then
+    log("[INFO] Found special room")
+    return result
+  end
+  --[[ got pic and added  圣乔治 
+  result = findColors({{16777215,0,0}, {16777215,-1,33}, {16777215,-12,19}, {16777215,-16,33}, {16777215,-12,13}, {16777215,-6,3}, {16711422,-18,-2}, {16777215,-25,1}, {16777215,-25,17}, {16777215,-35,17}, {16777215,-35,-3}, {16777215,-35,36}, {16777215,-25,33}, {16777215,-35,8}, {16777215,-35,27}, {16777215,-29,18}, {16777215,-2,46}, {16777215,1,74}, {16777215,-3,61}, {16777215,-10,55}, {16777215,-9,43}, {16777215,-9,80}, {16777215,-19,80}, {16777215,-10,67}, {16777215,-19,44}, {16777215,-36,45}, {16777215,-19,54}, {16777215,-20,71}, {16645629,-37,71}}, 0, rect);
+  if next(result) ~= nil then
+    log("[INFO] Found special room")
+    return result
+  end
+]]
+  --[[ got pic and added  童话型奥尔特李特 
+  result = findColors({{16645628,0,0}, {16777215,19,1}, {16777215,19,32}, {16777215,0,33}, {16777215,7,17}, {16777215,16,17}, {16777215,9,16}, {16777215,2,27}, {16777215,9,27}, {16777215,14,25}, {16777215,3,17}, {16777215,2,7}, {16777215,9,7}, {16711422,14,9}, {16777215,22,16}, {16777215,20,16}, {16711422,-5,-1}, {16711422,-5,34}, {16777215,-6,16}, {16777215,-8,14}, {16777215,-8,18}, {16777215,-4,17}, {16777215,-15,35}, {16777215,-15,-2}, {16777215,-9,45}, {16777215,5,52}, {16645629,10,44}, {16777215,18,50}, {16777215,23,51}, {16777215,18,78}, {16777215,10,78}, {16777215,16,80}, {16579836,7,73}, {16777215,-10,80}, {16777215,-1,76}, {16777215,-13,62}, {16777214,-13,51}, {16777215,-15,57}, {16777215,12,63}, {4079920,0,40}, {3293488,10,40}, {3291696,17,40}}, 0, rect);
+  if next(result) ~= nil then
+    log("[INFO] Found special room")
+    return result
+  end
   
+  --[[ got pic and added  童话型奥尔特李特 
+  result = findColors({{16579836,0,0}, {16777215,20,2}, {16777215,20,32}, {16777215,0,33}, {16777215,22,16}, {16777215,15,17}, {16777215,2,17}, {16777215,7,17}, {16777215,9,15}, {16777215,9,17}, {16777215,9,26}, {16777215,13,24}, {16777215,4,23}, {16645629,13,10}, {16777215,9,9}, {16777215,4,10}, {16777215,-5,14}, {16777215,-5,18}, {16777215,-7,16}, {16777215,-5,35}, {16777215,-5,-2}, {16777215,-14,-2}, {16777215,-14,35}}, 0, rect);
+  if next(result) ~= nil then
+    log("[INFO] Found special room")
+    return result
+  end
+  ]]
+  --[[ got pic and added  贝德维德 
+  result = findColors({{16777215,0,0}, {16777215,25,1}, {16777215,24,28}, {16777215,1,28}, {16777215,16,14}, {16777215,-11,-4}, {16711422,-11,31}, {16777215,-2,19}, {16777215,26,45}, {16777215,17,39}, {16711422,16,46}, {16777215,6,39}, {16777215,-10,43}, {16777215,8,43}, {16777215,4,51}, {16777215,4,76}, {16777215,-9,78}, {16777215,-2,74}, {16777215,-7,71}, {16316664,-11,59}, {16579836,-1,57}, {16514043,-1,63}, {16777215,-4,65}, {16777215,9,59}, {16777215,9,68}, {16777215,17,68}, {16777215,17,60}, {16777215,23,64}, {16777215,23,51}, {16777215,23,77}, {16777215,26,65}, {16777215,17,52}, {16777215,10,52}, {16777215,17,76}, {16777215,10,76}}, 0, rect);
+  if next(result) ~= nil then
+    log("[INFO] Found special room")
+    return result
+  end
+]]
+  return result
+end
+
+function findRoomLevel5()
+  local rect = {355, 379, 900, 114}
+  local result
+  --[[ 超级 ]]
+  result = findColors({{16777215,0,0}, {16645629,0,14}, {16777215,3,7}, {16777215,-10,7}, {16711422,-10,-2}, {16777215,-10,14}, {16777215,1,18}, {16777215,0,34}, {16777215,-11,34}, {16777215,-12,28}, {16777215,-18,19}, {16777215,-28,19}, {16777215,-28,34}, {16777215,-18,34}, {16777215,-19,1}, {16777215,-32,-1}, {16777215,-33,14}, {16777215,-33,37}, {16777215,3,52}, {16645885,-12,43}, {16777215,-12,52}, {16777215,-5,57}, {16777215,-22,46}, {16777215,-20,56}, {16777215,-32,46}, {16645629,-28,56}, {16777215,-34,58}, {16777215,-17,65}, {16777215,1,65}, {16777215,1,60}, {16777215,1,75}, {16777215,-10,75}, {16777215,-11,80}, {16777215,-27,73}, {16645629,-34,81}, {16777215,-33,65}, {3817776,-17,41}, {3947568,-27,41}, {3292208,-4,42}}, 0, rect);
+  if next(result) ~= nil then
+    log("[INFO] Found level 5 room")
+    return result
+  end
+  result = findColors({{16777215,0,0}, {16777215,0,14}, {16777215,4,7}, {16777215,-9,7}, {16777215,-9,-1}, {16777215,-9,14}, {16777215,-14,7}, {16777215,-28,7}, {16777215,-15,1}, {16777215,-33,-2}, {16777215,-33,36}, {16777215,-32,12}, {16777215,-19,13}, {16777215,-18,18}, {16777215,-27,19}, {16777215,-27,35}, {16777215,-17,34}, {16777215,-11,28}, {16514043,2,34}, {16777215,-8,35}, {16777215,1,24}, {16777215,-12,18}, {4144943,-23,25}, {4144943,-23,29}, {3881775,-27,41}, {3817776,-16,41}, {3292208,-3,41}, {16777215,3,52}, {16777215,-11,44}, {16777215,-11,53}, {16777215,-5,56}, {16777215,-22,46}, {16777215,-31,44}, {16777215,-28,55}, {16777215,-33,58}, {16777215,-15,65}, {16777215,-27,73}, {16777215,-33,81}, {16777215,-33,65}, {16777215,-11,80}, {16777215,-9,75}, {16777215,2,74}, {16777215,2,60}, {16777215,2,64}}, 0, rect);
+  if next(result) ~= nil then
+    log("[INFO] Found level 5 room")
+    return result
+  end
+  result = findColors({{16777215,0,0}, {16777215,0,13}, {16777215,2,7}, {16777215,-8,7}, {16777215,-9,0}, {16777215,-9,14}, {16777215,-15,7}, {16777215,-30,7}, {16777215,-16,1}, {16777215,-33,-1}, {16777215,-33,37}, {16777215,-33,16}, {16777215,-19,7}, {16777215,-19,12}, {4210736,-23,25}, {4210736,-23,29}, {16777215,-18,18}, {16777215,-28,20}, {16777215,-29,33}, {16777215,-25,35}, {16777215,-18,34}, {16777215,-12,29}, {16777215,0,35}, {16777215,-10,35}, {16777215,0,24}, {16777215,1,18}, {16777215,3,51}, {16777215,-12,45}, {16777215,-12,52}, {16777215,-21,47}, {16777215,-20,55}, {16777215,-32,46}, {16777215,-28,55}, {16777215,-33,59}, {16777215,-16,65}, {16777215,-27,73}, {16777215,-33,81}, {16777215,-33,66}, {16777215,-11,80}, {16579836,-10,75}, {16777215,2,74}, {16777215,2,61}, {16777215,1,64}}, 0, rect);
+  if next(result) ~= nil then
+    log("[INFO] Found level 5 room")
+    return result
+  end
+
+  return result
 end
 
 function findRoomLevel4()
@@ -226,10 +286,28 @@ end
 function findCertainRoom()
   local result
   local retry = 3
+  local high_level = 3     -- 3: level 3 room. 4: level 4 room. 5: level 5 room
+  local special_room = 1   -- 0: disable  1: enable  2: force(dead loop)
 
   local hour = os.date("%H")
-  if hour == "10" or hour == "15" or hour == "19" or hour == "22" then
+  local mins = os.date("%M")
+  
+  if hour == "10" or hour == "15" or hour == "19" or hour == "22" or hour == "13" or hour == "20" then
     retry = 6
+    high_level = 5
+  end
+  
+  -- boss show time
+  if hour == "13" or hour == "20" then
+    retry = 6
+    high_level = 4
+  end
+  
+  if special_room > 0 and retry == 3 then
+    log("[INFO] " .. hour .. " : " .. mins)
+    if hour ~= "18" and hour ~= "12" then
+      retry = 10
+    end
   end
 
   while true
@@ -243,16 +321,33 @@ function findCertainRoom()
         waitingFlip()
         waitingConnection()
       end
+      
+      --[[ find special room ]]
+      if special_room > 0 then
+        result = findSpecialRoom()
+        if next(result) ~= nil then
+          return result
+        end
+      end
+      
+      if high_level >= 5 then
+        result = findRoomLevel5()
+        if next(result) ~= nil then
+          return result
+        end
+      end
 
-      result = findRoomLevel4()
-      if next(result) ~= nil then
-        return result
+      if high_level >= 4 then
+        result = findRoomLevel4()
+        if next(result) ~= nil then
+          return result
+        end
       end
       
       if retry > 3 then
         break
       end
-      
+
       result = findRoomLevel3()
       if next(result) ~= nil then
         return result
@@ -638,7 +733,7 @@ function killMA()
 end
 
 function captureErrorPage()
-  image="errors/" .. os.date("%Y-%m-%d-%H:%M:%S") .. ".bmp"
+  image="errors_" .. os.date("%Y-%m-%d-%H:%M:%S") .. ".bmp"
   screenshot (image, nil);
 end
 
@@ -719,7 +814,7 @@ function get_life(pos, scope, split)
       break
     end
   end
-  log("[INFO] life " .. life .. " endt " .. endt .. " scope[1] " .. scope[1] .. " color @(" .. pos .. "," .. (start + step) .. ") is " .. getColor(pos, start + step))
+  --log("[INFO] life " .. life .. " endt " .. endt .. " scope[1] " .. scope[1] .. " color @(" .. pos .. "," .. (start + step) .. ") is " .. getColor(pos, start + step))
   return math.floor((life - scope[1]) / (endt - scope[1]) * 100)
 end
 
@@ -781,18 +876,22 @@ function find_single(partner)
   local m = 0
   m = math.min(partner1, partner2, partner3, self_life)
   if m == partner1 then
+    log("[INFO] selecto player 1 to cure")
     return {partner1_pos + 100, partner_life_scope[1]}
   end
   
   if m == partner2 then
+    log("[INFO] selecto player 1 to cure")
     return {partner2_pos + 100, partner_life_scope[1]}
   end
     
   if m == partner3 then
+    log("[INFO] selecto player 1 to cure")
     return {partner3_pos + 100, partner_life_scope[1]}
   end
   
   if m == self_life then
+    log("[INFO] selecto player 1 to cure")
     return {self_pos + 100, self_life_scope[1]}
   end
 end
@@ -1043,12 +1142,12 @@ function sort_card(chain_color)
       end
 
       if cure > 0 then
-        if cost_total >= 4 then
-          local card = search_card(4, false, chain_color)
+        if cost_total >= 2 and cure <= 3 and cure % 2 == 1 then
+          local card = search_card(2, true, chain_color)
           if card ~= nil then
             table.insert(card_to_play, card)
             cost_total = cost_total - card:getCost()
-            cure = cure - 2
+            cure = cure - 1
             break
           end
         end
@@ -1057,7 +1156,7 @@ function sort_card(chain_color)
           if card ~= nil then
             table.insert(card_to_play, card)
             cost_total = cost_total - card:getCost()
-            cure = cure -2
+            cure = cure - 2
             break
           end
         end
@@ -1070,12 +1169,21 @@ function sort_card(chain_color)
             break
           end
         end
+        if cost_total >= 4 then
+          local card = search_card(4, false, chain_color)
+          if card ~= nil then
+            table.insert(card_to_play, card)
+            cost_total = cost_total - card:getCost()
+            cure = cure - 2
+            break
+          end
+        end
         if cost_total >= 2 then
           local card = search_card(2, true, chain_color)
           if card ~= nil then
             table.insert(card_to_play, card)
             cost_total = cost_total - card:getCost()
-            cure = cure -2
+            cure = cure - 2
             break
           end
         end
@@ -1084,7 +1192,7 @@ function sort_card(chain_color)
           if card ~= nil then
             table.insert(card_to_play, card)
             cost_total = cost_total - card:getCost()
-            cure = cure -1
+            cure = cure - 1
             break
           end
         end
@@ -1109,24 +1217,41 @@ function skip_this_turn()
   touchPos(552, 740);
 end
 
-function is_internal_autobattle_enable()
+function is_internal_autobattle_enable(disable)
   local result = findColors({{16777037,0,0}, {16777035,-17,0}, {16711241,-18,21}, {16644934,1,21}, {16777038,3,9}, {16579916,-6,11}, {16053322,-12,11}, {16777045,-6,33}, {15397189,1,34}, {16777036,-17,31}, {16776782,-18,44}, {16777045,-16,39}, {16777039,-2,47}, {16777036,-3,54}, {16579663,-19,53}, {948007,-14,51}}, 0, {88, 1829, 77, 186});
   if next(result) ~= nil then
-    log("[INFO] internal autobattle enabled")
-    return true
+    if disable == 1 then
+      touchPairs(result)
+      log("[INFO] disable internal autobattle for fun!!")
+      return false
+    else
+      log("[INFO] internal autobattle enabled")
+      return true
+    end
   end
   
   local result = findColors({{5561685,0,0}, {4513123,5,0}, {4840801,1,-2}, {4512852,-2,160}, {4054101,4,160}, {965450,26,114}, {637759,26,42}}, 0, {88, 1829, 77, 186});
   if next(result) ~= nil then
-    log("[INFO] internal autobattle enabled")
-    return true
+    if disable == 1 then
+      touchPairs(result)
+      log("[INFO] disable internal autobattle for fun!!")
+      return false
+    else
+      log("[INFO] internal autobattle enabled")
+      return true
+    end
   end
   
   local result = findColors({{14535228,0,0}, {14469952,0,21}, {13416497,-6,21}, {14928963,3,9}, {13877822,2,32}, {14535731,0,48}, {14467891,-6,33}, {1909282,-14,51}, {14403635,-2,55}, {2236962,-13,67}, {14535738,1,67}, {14535742,0,80}, {2236962,-4,71}}, 0, {88, 1829, 77, 186});
   if next(result) ~= nil then
-    touchPairs(result)
-    log("[INFO] enable internal autobattle")
-    return true
+    if disable == 1 then
+      log("[INFO] internal autobattle disabled")
+      return false
+    else
+      touchPairs(result)
+      log("[INFO] enable internal autobattle")
+      return true
+    end
   end
 
   return false
@@ -1148,12 +1273,18 @@ function auto_battle()
     v:reset()
   end
   
+  local disable = 0
+  local using_script_ai = false
+  
   while retry > 0 do
 
     if skip_button() then
-      if is_internal_autobattle_enable() then
+      if using_script_ai == false and is_internal_autobattle_enable(disable) then
         return false
+      else
+        using_script_ai = true
       end
+
       if chain_color == nil then
         chain_color = get_chain_color()
       end
@@ -1191,6 +1322,75 @@ function auto_battle()
   end
 end
 
+function sell_cards()
+  --[[ card button ]]
+  local result = findColors({{16777113,0,0}, {16777113,-3,43}, {15643985,-31,43}, {16777113,1,52}, {16777113,-11,54}, {16777113,-5,62}, {16777122,-16,63}, {16777113,-6,73}, {16777113,-11,73}, {16777113,-5,82}, {16777113,-13,83}, {16777113,1,70}, {16777113,-14,44}, {16777113,-10,1}, {16777113,-6,15}, {16777113,-14,2}}, 0, {34, 1096, 85, 154});
+  if next(result) ~= nil then
+    touchPairs(result)
+  end
+  waitingFlip()
+  waitingFlip()
+  
+  touchPos(598, 1802)
+  waitingFlip()
+  waitingConnection()
+  
+  local result = findColors({{16580350,0,0}, {16777215,-24,13}, {16777215,-24,17}, {16777215,-12,32}, {16777215,-21,29}, {16777215,-26,41}, {16777215,-16,43}, {11001292,15,43}, {11132621,15,31}, {13825258,5,28}, {14548974,3,50}, {11724244,12,50}, {11263950,13,65}, {14680055,1,65}, {15925247,-12,63}, {16777215,-24,64}, {16777215,-24,82}, {10411468,16,81}, {11197900,13,97}, {14548974,1,97}, {16252927,-12,98}, {16777215,-27,98}, {16777215,-26,116}, {16777215,-18,116}, {15925247,-8,116}, {11001292,15,117}, {2838368,13,107}, {1197141,-16,108}, {1127236,6,73}, {1653585,-15,73}, {11197900,14,134}, {15663099,-4,134}, {16777215,-17,145}, {16777215,-28,146}, {16580607,-7,151}, {14941172,0,147}, {14940404,7,147}, {11460051,14,147}}, 0, {627, 1769, 223, 234});
+  if next(result) ~= nil then
+    touchPairs(result)
+  end
+  waitingFlip()
+  waitingFlip()
+  
+  result = findColors({{5456418,0,0}, {4272929,-2,0}, {5457451,0,10}, {4403989,-9,10}, {6509361,0,24}, {5325858,-5,30}, {5390892,0,55}, {4208152,-4,56}, {4207377,-27,27}, {5194789,32,78}}, 0, {452, 265, 510, 134});
+  if next(result) ~= nil then
+    log("[INFO] found column 1")
+    touchPairs(result)
+  end
+  
+  result = findColors({{5459244,0,0}, {4207381,-3,-3}, {3945242,-3,3}, {5590313,1,4}, {4403989,-2,6}, {4338455,-2,12}, {5588776,1,12}, {4207393,-2,9}, {4010775,-21,9}, {4207384,-19,12}, {4272924,-12,38}, {5588516,5,56}, {5588011,19,66}, {3748635,-25,30}, {4010775,-30,19}, {4404001,-16,24}, {4736034,45,74}, {5194786,30,81}, {5588002,29,63}, {5588773,7,58}, {4272924,-2,47}}, 0, {427, 782, 170, 186});
+  if next(result) ~= nil then
+    log("[INFO] found column 2")
+    touchPairs(result)
+  end
+
+  result = findColors({{5588002,0,0}, {4076313,-8,-1}, {6050599,0,10}, {4209942,-8,11}, {6182195,0,17}, {4867106,-8,22}, {6378803,0,27}, {4338456,-9,30}, {5589027,0,38}, {4207388,-8,39}, {5588773,3,44}, {4076313,-9,46}}, 0, {636, 1332, 329, 137});
+  if next(result) ~= nil then
+    log("[INFO] found column 3")
+    touchPairs(result)
+  end
+  
+  result = findColors({{16776958,0,0}, {16777215,0,53}, {16776958,22,68}, {16777215,1,62}, {16777215,3,69}, {16711422,15,69}, {16777215,14,67}, {16777215,-8,70}, {16645115,-8,63}, {16645115,-8,75}, {16777215,-25,70}, {16777215,-24,75}, {16777215,22,81}, {16777215,22,88}, {16777215,5,82}, {16777215,1,89}, {16777215,-18,86}, {16777215,-5,81}, {16777215,-26,111}, {16777215,-20,101}, {16777215,23,101}, {16777215,20,101}, {16777215,20,95}, {16777215,18,111}, {16777215,3,110}, {16777215,11,93}, {16777215,11,110}, {16777215,11,102}, {16777215,3,102}, {16777215,3,95}, {16777215,-6,102}, {16777215,-6,95}, {16777215,-6,110}, {16777215,-15,102}, {16710908,-15,93}, {16645115,-15,113}}, 0, {257, 864, 93, 300});
+  if next(result) ~= nil then
+    log("[INFO] onclick to sell")
+    touchPairs(result)
+  end
+  waitingFlip()
+  
+  result = findColors({{16777215,0,0}, {16777215,0,9}, {16777215,0,18}, {16777215,-17,5}, {16777215,-17,15}, {16777215,-45,15}, {16777215,-45,5}, {16777215,-10,19}, {16776958,4,27}, {16777215,0,27}, {16777215,-1,41}, {16777215,-11,38}, {16777215,-11,25}, {16777215,-11,50}, {16777215,-46,49}, {16777215,-47,38}, {16777215,-38,38}, {16777215,-30,38}, {16777215,-20,38}, {16777215,-20,25}, {16777215,-31,25}, {16777215,-47,22}, {16777215,-20,50}, {16777215,-30,50}}, 0, {501, 623, 72, 271});
+  if next(result) ~= nil then
+    log("[INFO] confirm to sell")
+    touchPairs(result)
+  end
+  waitingFlip()
+  
+  result = findColors({{16777215,0,0}, {16777215,0,16}, {16777215,0,8}, {16777215,-26,4}, {16777215,-24,15}, {16777215,-37,15}, {16777215,-36,4}, {8068621,-27,10}, {16777215,-22,24}, {16777215,-31,24}, {16777215,-20,37}, {16777215,-31,37}, {16777215,-20,49}, {16777215,-31,49}, {16777215,-24,70}, {16777215,-32,70}, {16777215,-23,86}, {16777215,-34,86}, {16777215,-28,124}, {16777215,-37,124}, {16777215,-17,147}, {16777215,-29,147}, {16777215,-13,168}, {16777215,-32,171}, {16777215,-13,188}, {16777215,-22,188}, {16777215,-10,211}, {16777215,-19,211}}, 0, {503, 623, 69, 256});
+  if next(result) ~= nil then
+    log("[INFO] confirm to sell")
+    touchPairs(result)
+  end
+  waitingFlip()
+  
+  result = findColors({{16777215,0,0}, {16777215,21,23}, {16777215,44,2}, {16777215,0,45}, {16777215,44,45}, {16777215,25,20}, {16777215,26,22}, {16777215,29,16}, {16777215,32,12}, {16777215,36,10}, {16777215,38,5}, {16777215,41,5}, {16777215,17,20}, {16777215,16,16}, {16777215,13,16}, {16777215,12,13}, {16777215,6,11}, {16777215,6,7}, {16777215,1,6}, {16777215,2,2}, {16777215,16,27}, {16777215,15,31}, {16777215,10,33}, {16777215,11,36}, {16777215,5,37}, {16777215,5,41}, {16777215,2,40}, {16777215,1,44}, {16777215,42,41}, {16777215,41,43}, {16777215,37,36}, {16777215,36,40}, {16777215,31,32}, {16777215,31,35}, {16777215,25,26}, {16777215,25,28}}, 0, {1139, 1762, 73, 72});
+  if next(result) ~= nil then
+    log("[INFO] exit sell dialog")
+    touchPairs(result)
+  end
+  waitingFlip()
+
+  gotoHome()
+end
+
 
 --[[ main start here ]]
 log("[INFO] script start @ "..os.date("%c"))
@@ -1201,6 +1401,7 @@ while true
 do
   local quit = 0
   local retry = 0
+  sell_cards()
   while quickGame() == nil
   do
     gotoHome()
@@ -1226,7 +1427,7 @@ do
   end
   networkError()
   local hour = os.date("%H")
-  if hour == "12" or hour == "13" or hour == "14" or hour == "18" or hour == "19" or hour == "20" then
+  if hour == "12" or hour == "13" or hour == "18" or hour == "19" then
     if hour - last_rewards > 2 then
       recvRewards()
       last_rewards = hour
