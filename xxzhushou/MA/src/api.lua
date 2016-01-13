@@ -1,7 +1,7 @@
-local module = {};
+local module = {file = nil};
 
 local logfile = "log.txt"
-local file = io.open(logfile)
+module.file = io.open(logfile)
 
 function module.findImageInRegionFuzzy(picname, degree, x1, y1, x2, y2, alpha)
 -- picname: the picture to find
@@ -24,11 +24,11 @@ function module.touchPos(x, y)
 end
 
 function module.info(msg)
-   file:write("[INFO] " .. msg)
+   module.file:write("[INFO] " .. msg)
 end
 
 function module.error(msg)
-   file:write("[ERR] " .. msg)
+   module.file:write("[ERR] " .. msg)
 end
 
 return module;

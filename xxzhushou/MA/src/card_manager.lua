@@ -1,4 +1,4 @@
-local api = require("api.lua")
+local api = require("api")
 local findImage = api.findImageInRegionFuzzy
 local touchPos = api.touchPos
 local info = api.info

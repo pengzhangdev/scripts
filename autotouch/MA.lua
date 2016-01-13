@@ -177,12 +177,13 @@ function findSpecialRoom()
   local rect = {355, 379, 900, 114}
 
   local result
-  --[[ 贝兰 ]]
+  --[[ 贝兰 
   result = findColors({{16777215,0,0}, {16777215,24,1}, {16777215,24,27}, {16777215,0,28}, {16777215,-3,18}, {16777215,-11,31}, {16777215,-11,-3}, {16777215,1,12}, {16777215,17,14}, {16777215,25,46}, {16777215,20,51}, {16777215,24,70}, {16777215,14,64}, {16777215,14,43}, {16777215,14,75}, {16777215,3,46}, {16777215,-10,41}, {16777215,-10,76}, {16777215,3,73}, {3621168,9,21}, {3686448,8,7}}, 0, rect);
   if next(result) ~= nil then
     log("[INFO] Found special room")
     return result
   end
+  ]]
   --[[ got pic and added  圣乔治 
   result = findColors({{16777215,0,0}, {16777215,-1,33}, {16777215,-12,19}, {16777215,-16,33}, {16777215,-12,13}, {16777215,-6,3}, {16711422,-18,-2}, {16777215,-25,1}, {16777215,-25,17}, {16777215,-35,17}, {16777215,-35,-3}, {16777215,-35,36}, {16777215,-25,33}, {16777215,-35,8}, {16777215,-35,27}, {16777215,-29,18}, {16777215,-2,46}, {16777215,1,74}, {16777215,-3,61}, {16777215,-10,55}, {16777215,-9,43}, {16777215,-9,80}, {16777215,-19,80}, {16777215,-10,67}, {16777215,-19,44}, {16777215,-36,45}, {16777215,-19,54}, {16777215,-20,71}, {16645629,-37,71}}, 0, rect);
   if next(result) ~= nil then
@@ -196,7 +197,7 @@ function findSpecialRoom()
     log("[INFO] Found special room")
     return result
   end
-  
+  ]]
   --[[ got pic and added  童话型奥尔特李特 
   result = findColors({{16579836,0,0}, {16777215,20,2}, {16777215,20,32}, {16777215,0,33}, {16777215,22,16}, {16777215,15,17}, {16777215,2,17}, {16777215,7,17}, {16777215,9,15}, {16777215,9,17}, {16777215,9,26}, {16777215,13,24}, {16777215,4,23}, {16645629,13,10}, {16777215,9,9}, {16777215,4,10}, {16777215,-5,14}, {16777215,-5,18}, {16777215,-7,16}, {16777215,-5,35}, {16777215,-5,-2}, {16777215,-14,-2}, {16777215,-14,35}}, 0, rect);
   if next(result) ~= nil then
@@ -204,13 +205,13 @@ function findSpecialRoom()
     return result
   end
   ]]
-  --[[ got pic and added  贝德维德 
+  --[[ got pic and added  贝德维德 ]]
   result = findColors({{16777215,0,0}, {16777215,25,1}, {16777215,24,28}, {16777215,1,28}, {16777215,16,14}, {16777215,-11,-4}, {16711422,-11,31}, {16777215,-2,19}, {16777215,26,45}, {16777215,17,39}, {16711422,16,46}, {16777215,6,39}, {16777215,-10,43}, {16777215,8,43}, {16777215,4,51}, {16777215,4,76}, {16777215,-9,78}, {16777215,-2,74}, {16777215,-7,71}, {16316664,-11,59}, {16579836,-1,57}, {16514043,-1,63}, {16777215,-4,65}, {16777215,9,59}, {16777215,9,68}, {16777215,17,68}, {16777215,17,60}, {16777215,23,64}, {16777215,23,51}, {16777215,23,77}, {16777215,26,65}, {16777215,17,52}, {16777215,10,52}, {16777215,17,76}, {16777215,10,76}}, 0, rect);
   if next(result) ~= nil then
     log("[INFO] Found special room")
     return result
   end
-]]
+
   return result
 end
 
@@ -287,7 +288,7 @@ function findCertainRoom()
   local result
   local retry = 3
   local high_level = 3     -- 3: level 3 room. 4: level 4 room. 5: level 5 room
-  local special_room = 1   -- 0: disable  1: enable  2: force(dead loop)
+  local special_room = 0   -- 0: disable  1: enable  2: force(dead loop)
 
   local hour = os.date("%H")
   local mins = os.date("%M")
@@ -300,13 +301,13 @@ function findCertainRoom()
   -- boss show time
   if hour == "13" or hour == "20" then
     retry = 6
-    high_level = 4
+    high_level = 5
   end
   
   if special_room > 0 and retry == 3 then
     log("[INFO] " .. hour .. " : " .. mins)
     if hour ~= "18" and hour ~= "12" then
-      retry = 10
+      retry = 15
     end
   end
 
@@ -1080,7 +1081,11 @@ function get_cure_level()
   end
 
   if max >= 2 * average_lost then
-    cure = cure + 1
+    if cure % 2 == 0 then
+      cure = cure + 1
+    else
+      cure = cure + 2
+    end
   end
 
   return cure
@@ -1107,6 +1112,14 @@ function sort_card(chain_color)
     while true do
       if cost_total >= 5 and cure <= 1 then
         local card = search_card(5, false, chain_color)
+        if card ~= nil then
+          table.insert(card_to_play, card)
+          cost_total = cost_total - card:getCost()
+          break
+        end
+      end
+      if cost_total >= 4 and cure <= 1 then
+        local card = search_card(4, false, chain_color)
         if card ~= nil then
           table.insert(card_to_play, card)
           cost_total = cost_total - card:getCost()
@@ -1140,6 +1153,15 @@ function sort_card(chain_color)
           break
         end
       end
+      
+      if cure <= 0 and chain == true then
+        local card = search_card(2, true, chain_color)
+        if card ~= nil then
+          table.insert(card_to_play, card)
+          cost_total = cost_total - card:getCost()
+          break
+        end
+      end
 
       if cure > 0 then
         if cost_total >= 2 and cure <= 3 and cure % 2 == 1 then
@@ -1162,15 +1184,6 @@ function sort_card(chain_color)
         end
         if cost_total >= 3 then
           local card = search_card(3, false, chain_color)
-          if card ~= nil then
-            table.insert(card_to_play, card)
-            cost_total = cost_total - card:getCost()
-            cure = cure - 2
-            break
-          end
-        end
-        if cost_total >= 4 then
-          local card = search_card(4, false, chain_color)
           if card ~= nil then
             table.insert(card_to_play, card)
             cost_total = cost_total - card:getCost()
@@ -1391,6 +1404,37 @@ function sell_cards()
   gotoHome()
 end
 
+function shall_we_wait()
+  local result = nil;
+  
+  while true 
+  do  
+    local weekday = os.date("%a");
+    local hour = os.date("%H");
+  	log("[INFO] weekday " .. weekday .. " hour " .. hour)
+    if weekday == "Mon" then
+      return;
+    end
+  
+    if hour == "10" or hour == "15" or hour == "19" or hour == "22" or hour == "13" or hour == "20" then
+      return;
+    end
+  
+    result = dungeon_button();
+    if next(result) == nil then
+      return;
+    end
+
+    local m = os.date("%M")
+    local waiting_time = (61 - m) * 60 * 1000000
+    result =  findColors({{16777215,0,0}, {16777215,1,0}, {16777215,3,1}, {16711679,5,3}, {16777215,6,5}, {16777215,7,7}, {16777215,6,10}, {16777215,3,14}, {16777215,-4,13}, {16777215,-7,9}, {16711422,-10,6}, {16777215,-15,2}, {16777215,-17,0}, {16777215,-18,2}, {16777215,-18,14}, {16777215,-18,6}}, 0, {1442, 1654, 34, 26});
+    if next(result) ~= nil then
+      log("[INFO] waiting time " .. waiting_time)
+      usleep(waiting_time);
+    end
+  end
+end
+
 
 --[[ main start here ]]
 log("[INFO] script start @ "..os.date("%c"))
@@ -1401,6 +1445,7 @@ while true
 do
   local quit = 0
   local retry = 0
+  shall_we_wait()
   sell_cards()
   while quickGame() == nil
   do
