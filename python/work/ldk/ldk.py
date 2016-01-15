@@ -17,9 +17,11 @@ from urllib2 import urlopen
 import os
 import sys
 import getopt
+import shutil
 
 OPTIONS = {}
 GLOBAL_SDK_PATH = ""
+GLOBAL_WORKSPACE_PATH = "ldk"
 
 KEY_SDK_MAJOR_VERSION = 'SDK_MAJOR_VERSION'
 KEY_SDK_SUB_VERSION = 'SDK_SUB_VERSION'
@@ -133,6 +135,7 @@ def run_compiler(sdk_path):
         os.popen(compile_cmd % ('clean', module, sdk_path)).readlines()
         compile_buffer = compile_buffer + os.popen(compile_cmd % ('', module, sdk_path)).readlines()
     copy_file('app-build/build/autopackage.sh.bak', 'app-build/build/autopackage.sh')
+
     return compile_buffer
 
 def split_args(line):
@@ -181,7 +184,8 @@ def rm_duplicate(list):
 
 def refine_path(flag):
     global GLOBAL_SDK_PATH
-    sdk_abs_path = os.path.abspath(GLOBAL_SDK_PATH)
+    global GLOBAL_WORKSPACE_PATH
+    sdk_abs_path = GLOBAL_SDK_PATH
     wd = os.path.dirname(sdk_abs_path)
     sdk_name = os.path.basename(sdk_abs_path)
 
@@ -326,12 +330,16 @@ def format_flags(flags):
     return buffer
 
 
-def generate_makefile(sdk_path):
+def generate_makefile(sdk_path, test):
     global OPTIONS
-    path_prefix = os.path.dirname(os.path.abspath(sdk_path)) + '/'
-    mk = open('ldk.mk', 'w')
+    global GLOBAL_WORKSPACE_PATH
+    path_prefix = GLOBAL_WORKSPACE_PATH + "/"
+    mk = open(os.path.join(GLOBAL_WORKSPACE_PATH, 'ldk.mk'), 'w')
     buffer = ""
-    buffer = buffer + 'COS_SDK_PATH := %s\n' % (path_prefix)
+    if test :
+        buffer = buffer + 'COS_SDK_PATH := %s\n' % (path_prefix)
+    else:
+        buffer = buffer + 'COS_SDK_PATH := %s\n' % ("./")
     buffer = buffer + 'COS_GCC := %s\n' % (OPTIONS["gcc"][0])
     buffer = buffer + 'COS_GXX := %s\n' % (OPTIONS["g++"][0])
     buffer = buffer + 'COS_AR  := %s\n' % (OPTIONS["ar"][0])
@@ -383,7 +391,7 @@ def create_symbol_link(sdk_path):
         symdict[source] = symdict[source] + ["%s" % (target)]
     os.path.walk(sdk_path, create_symlink_callback, symdict)
 
-def ldk_main(sdk_path):
+def ldk_main(sdk_path, test):
     global GLOBAL_SDK_PATH
     blacklist=['-c', '-S', '-E', '-o', '-D*', '-Os', '-g', '-U*', '-Wl,-soname,*', '-l*']
     whitelist=['-fno-exceptions', '-fno-short-enums', '-Wno-unused', '-fno-strict-aliasing',
@@ -391,6 +399,8 @@ def ldk_main(sdk_path):
                '*crtbegin_so.o']
     GLOBAL_SDK_PATH = sdk_path
     sdk_path = os.path.abspath(sdk_path)
+    sdk_path = copy_sdk(sdk_path)
+    GLOBAL_SDK_PATH = sdk_path
     option_summary = compiler_option_summary()
 
     parse_sdk_version(sdk_path)
@@ -402,8 +412,8 @@ def ldk_main(sdk_path):
     OPTIONS["arflags"] = (arflags, "", "")
 
     create_symbol_link(sdk_path)
-    generate_makefile(GLOBAL_SDK_PATH)
-    print "Done! Pls read ldk.mk"
+    generate_makefile(GLOBAL_SDK_PATH, test)
+    print "Done! Generate ldk in dir ldk!"
     # for key in OPTIONS:
     #     print key + " :"
     #     print OPTIONS[key][0]
@@ -414,7 +424,20 @@ def test_main():
 
 def usage():
     print "Usage:"
-    print "\t./ldk.py  $SDK_PATH"
+    print "\t./ldk.py [-t] $SDK_PATH"
+    print "\t\t -t: test mode, update the sdk path and compile the test codes"
+
+def copy_sdk(sdk_path):
+    global GLOBAL_WORKSPACE_PATH
+    if os.path.exists(GLOBAL_WORKSPACE_PATH) :
+        shutil.rmtree(GLOBAL_WORKSPACE_PATH)
+    print "Creating work space ..."
+    os.mkdir(GLOBAL_WORKSPACE_PATH)
+    GLOBAL_WORKSPACE_PATH = os.path.join(os.getcwd(), GLOBAL_WORKSPACE_PATH)
+    new_sdk_path = os.path.join(GLOBAL_WORKSPACE_PATH, "sdk")
+    shutil.copytree(sdk_path, os.path.join(GLOBAL_WORKSPACE_PATH, "sdk"), True)
+    print "Done! workspace is %s " % (os.path.join(os.getcwd(), GLOBAL_WORKSPACE_PATH))
+    return new_sdk_path
 
 def main(argv):
     test = False
@@ -430,13 +453,13 @@ def main(argv):
         else:
             print "Unknown option \"%s\"" % (o)
     if len(args) == 1:
-        ldk_main(args[0])
+        ldk_main(args[0], test)
     else:
         usage()
         sys.exit(2)
 
     if test :
-       test_main() 
+       test_main()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
