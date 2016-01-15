@@ -1,0 +1,244 @@
+SYSTEM_ROOT := $(PWD)
+SYSTEM_TOOLCHAIN_ROOT := $(SYSTEM_ROOT)/../../cos_sdk_12_5/
+
+SYSTEM_CC := $(SYSTEM_TOOLCHAIN_ROOT)/toolchains/gcc/linux-x86_64/arm/arm-linux-androideabi-4.8/bin/arm-linux-androideabi-gcc
+SYSTEM_CXX := $(SYSTEM_TOOLCHAIN_ROOT)/toolchains/gcc/linux-x86_64/arm/arm-linux-androideabi-4.8/bin/arm-linux-androideabi-g++
+SYSTEM_AR := $(SYSTEM_TOOLCHAIN_ROOT)/toolchains/gcc/linux-x86_64/arm/arm-linux-androideabi-4.8/bin/arm-linux-androideabi-ar
+
+
+LOCAL_MODULE := test
+
+SYSTEM_CFLAGS := \
+	-fno-exceptions \
+	-Wno-multichar \
+	-msoft-float \
+	-fpie \
+	-ffunction-sections \
+	-fdata-sections \
+	-funwind-tables \
+	-fstack-protector \
+	-Wa,--noexecstack \
+	-Werror=format-security \
+	-fno-short-enums \
+	-march=armv7-a \
+	-mfloat-abi=softfp \
+	-mfpu=vfpv3-d16 \
+	-include /work/sdk-toolchain/2015-11-3-for-ca/sdk_for_ca/cos_sdk_12_5/include/system/core/include/arch/linux-arm/AndroidConfig.h \
+	-mthumb-interwork \
+	-DANDROID \
+	-DCOS_SDK_VERSION=125 \
+	-fmessage-length=0 \
+	-W \
+	-Wall \
+	-Wno-unused \
+	-Winit-self \
+	-Wpointer-arith \
+	-DHOST_BUILD=0 \
+	-DTARGET_BUILD=1 \
+	-Werror=return-type \
+	-Werror=non-virtual-dtor \
+	-Werror=address \
+	-Werror=sequence-point \
+	-DNDEBUG \
+	-Wstrict-aliasing=2 \
+	-fgcse-after-reload \
+	-frerun-cse-after-loop \
+	-frename-registers \
+	-UDEBUG \
+	-mthumb \
+	-fomit-frame-pointer \
+	-fno-strict-aliasing    \
+	-fPIE \
+	-D_USING_LIBCXX     \
+	-MD \
+	-DQCOM \
+	-DGAIA \
+
+SYSTEM_CPPFLAGS := \
+	$(SYSTEM_CFLAGS) \
+	-fvisibility-inlines-hidden \
+	-Wsign-promo \
+	-fpermissive \
+
+SYSTEM_ARFLAGS := crsP
+
+SYSTEM_SOLDFLAGS := \
+	-L$(SYSTEM_TOOLCHAIN_ROOT)/lib \
+	-Wl,-rpath-link=$(SYSTEM_TOOLCHAIN_ROOT)/lib \
+	-nostdlib \
+	-Wl,-soname,$(LOCAL_MODULE) \
+	-Wl,--gc-sections \
+	-Wl,-shared,-Bsymbolic \
+	-nodefaultlibs \
+	-Wl,--no-undefined \
+	-Wl,-z,noexecstack \
+	-Wl,--icf=safe \
+	-Wl,--fix-cortex-a8 \
+	$(SYSTEM_TOOLCHAIN_ROOT)/toolchains/gcc/linux-x86_64/arm/arm-linux-androideabi-4.8/bin/../lib/gcc/arm-linux-androideabi/4.8/armv7-a/libgcc.a \
+	$(SYSTEM_TOOLCHAIN_ROOT)/lib/crtend_so.o
+
+SYSTEM_BINARYLDFLAGS := \
+	-L$(SYSTEM_TOOLCHAIN_ROOT)/lib \
+	-Wl,-rpath-link=$(SYSTEM_TOOLCHAIN_ROOT)/lib \
+	-nostdlib \
+	-Bdynamic \
+	-pie \
+	-Wl,-dynamic-linker,/system/bin/linker \
+	-Wl,--gc-sections \
+	-Wl,-z,nocopyreloc \
+	-nodefaultlibs \
+	-Wl,-z,noexecstack \
+	-Wl,--icf=safe \
+	-Wl,--fix-cortex-a8 \
+	$(SYSTEM_TOOLCHAIN_ROOT)/lib/crtbegin_dynamic.o \
+	$(SYSTEM_TOOLCHAIN_ROOT)/toolchains/gcc/linux-x86_64/arm/arm-linux-androideabi-4.8/bin/../lib/gcc/arm-linux-androideabi/4.8/armv7-a/libgcc.a \
+	$(SYSTEM_TOOLCHAIN_ROOT)/lib/crtend_android.o
+
+SYSTEM_INCLUDES := \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/sdk/privilege/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/sdk/privilege/include/gaia   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/sdk/privilege/wrapper   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/gaia   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/memleak   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/system/core/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/common/frameworks/base/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/common/frameworks/base/native/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/common/hardware/libhardware/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/skia/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/skia/include/core   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/icu4c/common   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/icu4c/i18n   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/openssl/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/bluetooth/bluez/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/libcxx/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/gtest/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/gmock/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/opengl   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/json/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/libxml2/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/curl   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/libidn   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/external/libjingle   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic/libc/arch-arm   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic/libc/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic/libc/kernel/arch-arm   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic/libc/kernel/common   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic/libm   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic/libstdc++   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic/libthread_db   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic/libc/arch-arm/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic/libstdc++/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic/libc/kernel/common/asm-arm   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic/libm/include   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic/libm/include/arm   \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/bionic/libthread_db/include  \
+	-I $(SYSTEM_TOOLCHAIN_ROOT)/include/system/core/include/arch/linux-arm/ \
+
+#SYSTEM_SHARED_LIBRARIES := -L./ -Wl,-rpath-link=./ -ltest -lc
+SYSTEM_SHARED_LIBRARIES := -lc
+
+SYSTEM_STATIC_LIBRARIES := -L./ -ltest
+
+LOCAL_SRCS := \
+	main.c \
+#	main.c
+#	$(wildcard *.c ./*.c) \
+#	$(wildcard *.cpp ./*.cpp) \
+
+LOCAL_INCLUDES := \
+
+LOCAL_CFLAGS :=
+
+LOCAL_CPPFLAGS :=
+
+
+CC = $(SYSTEM_CC)
+CXX = $(SYSTEM_CXX)
+CFLAGS = \
+	$(SYSTEM_CFLAGS) \
+	$(LOCAL_CFLAGS) \
+
+CPPFLAGSS = \
+	$(SYSTEM_CPPFLAGS) \
+	$(LOCAL_CPPFLAGS) \
+
+SRCS := $(LOCAL_SRCS)
+INCLUDES := \
+	$(SYSTEM_INCLUDES) \
+	$(LOCAL_INCLUDES) \
+
+COMPILER = $(CXX)
+
+LDFLAGS := \
+	$(SYSTEM_BINARYLDFLAGS) \
+	$(SYSTEM_SHARED_LIBRARIES) \
+	$(SYSTEM_STATIC_LIBRARIES) \
+
+ifeq ($(strip $(suffix $(LOCAL_MODULE))), .so)
+$(warning "build shared library")
+        LDFLAGS := \
+			$(SYSTEM_SOLDFLAGS) \
+			$(SYSTEM_SHARED_LIBRARIES) \
+			$(SYSTEM_STATIC_LIBRARIES) 
+endif
+
+ifeq ($(strip $(suffix $(LOCAL_MODULE))), .a)
+$(warning "build static library")
+        LDFLAGS := \
+			$(SYSTEM_ARFLAGS) \
+			$(SYSTEM_STATIC_LIBRARIES) 
+endif
+
+DEPEND_DIR = .dep
+
+################################### rules start ###################################
+all: $(LOCAL_MODULE)
+
+%.c: %.lex
+	lex --header-file=$(@:.c=.h) -o $@ $<
+
+%.c: %.y
+	bison -d -o $@ $<
+
+%.o: %.c
+	$(CC) -c $(CFLAGS) $(INCLUDES) $< -o $@
+
+%.o: %.cpp
+	$(CXX) -c $(CPPFLAGS) $(INCLUDES) $< -o $@
+
+$(DEPEND_DIR)/%.c.d: %.c
+	@set -e; rm -f $@; \
+	mkdir -p $(DEPEND_DIR)/$(dir $<); \
+	$(CC) -MM $(INCLUDES) $< > $@.$$$$; \
+	sed 's,/($*/)/.o[ :]*,/1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed -i 's,$(notdir $*).o:,$(dir $<)$(notdir $*).o:,g' $@; \
+	rm -f $@.$$$$
+
+sinclude $(foreach var, $(filter %.c.d, $(LOCAL_SRCS:.c=.c.d)), $(DEPEND_DIR)/$(var))
+
+$(DEPEND_DIR)/%.cpp.d: %.cpp
+	@set -e; rm -f $@; \
+	mkdir -p $(DEPEND_DIR)/$(dir $<); \
+	$(CC) -MM $(INCLUDES) $< > $@.$$$$; \
+	sed 's,/($*/)/.o[ :]*,/1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed -i 's,$(notdir $*).o:,$(dir $<)$(notdir $*).o:,g' $@; \
+	rm -f $@.$$$$
+
+#$(warning $(foreach var, $(filter %.cpp.d, $(LOCAL_SRCS:.cpp=.cpp.d)), $(DEPEND_DIR)/$(var)))
+sinclude $(foreach var, $(filter %.cpp.d, $(LOCAL_SRCS:.cpp=.cpp.d)), $(DEPEND_DIR)/$(var))
+
+
+$(LOCAL_MODULE) : $(filter %.o, $(LOCAL_SRCS:.c=.o)) $(filter %.o, $(LOCAL_SRCS:.cpp=.o))
+	$(COMPILER) $(CFLAGS) $(INCLUDES) $^ $(LDFLAGS) -o $@
+
+
+# subdir makefile
+submodule:
+	$(call call-subdir-makefiles,test)
+
+.PHONY: clean
+clean :
+	-rm -r $(LOCAL_MODULE)
+	-find ./ -name "*.o" -exec rm '{}' \;

@@ -1,0 +1,6 @@
+# This file is only used to build app under COS SDK
+SDK_ROOT:=/work/COS2-sdk/cos-sdk/cos-sdk_20130416-142010_linux-x86
+PROJECT_ROOT:=/work/COS2-sdk/cos-sdk/app/CaTest
+SHELL:=/bin/bash
+include $(SDK_ROOT)/build/core/main.mk
+include $(PROJECT_ROOT)/Gaia.mk

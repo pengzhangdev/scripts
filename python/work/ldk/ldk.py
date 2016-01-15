@@ -16,9 +16,20 @@
 from urllib2 import urlopen
 import os
 import sys
+import getopt
 
 OPTIONS = {}
 GLOBAL_SDK_PATH = ""
+
+KEY_SDK_MAJOR_VERSION = 'SDK_MAJOR_VERSION'
+KEY_SDK_SUB_VERSION = 'SDK_SUB_VERSION'
+
+# default value of OPTIONS
+OPTIONS[KEY_SDK_MAJOR_VERSION] = (12, "")
+OPTIONS[KEY_SDK_SUB_VERSION] = (0, "")
+
+WITH_PIE_EXE_SDK_MAJOR_VERSION = 12
+WITH_PIE_EXE_SDK_SUB_VERSION = 5
 
 def compiler_option_parse_line(line):
     start = 0
@@ -187,7 +198,7 @@ def refine_path(flag):
     if flag.find(sdk_name) == -1 :
         return None
 
-    return prefix + "${COS_SDK_PATH}" + flag[start:]
+    return prefix + "$(COS_SDK_PATH)" + flag[start:]
 
 def refine_flags(flags, summary, whitelist, blacklist):
     out = []
@@ -301,7 +312,10 @@ def parse_compiler_args(args):
             hit_arflags = True
         if line.startswith(exeflags_sym):
             hit_exeflags = True
-        match_toolchain(line)
+
+    if OPTIONS[KEY_SDK_MAJOR_VERSION][0] >= WITH_PIE_EXE_SDK_MAJOR_VERSION and \
+       OPTIONS[KEY_SDK_SUB_VERSION][0] >= WITH_PIE_EXE_SDK_SUB_VERSION:
+        exeflags = ['-fPIE','-pie'] + exeflags
     return (rm_duplicate(cflags), rm_duplicate(ldflags), ["crsP"], rm_duplicate(exeflags))
 
 def format_flags(flags):
@@ -334,26 +348,73 @@ def generate_makefile(sdk_path):
     mk.write(buffer)
     mk.close()
 
-def main(argv):
+def parse_sdk_version(sdk_path):
+    global OPTIONS
+    version_path = os.path.join(sdk_path, "version.txt")
+    try:
+        f = open(version_path, 'r')
+    except IOError, e:
+        print "Failed to open " + version_path
+        return
+    for line in f.readlines():
+        if line.find(KEY_SDK_MAJOR_VERSION) != -1:
+            OPTIONS[KEY_SDK_MAJOR_VERSION] = (int(line.split('=')[-1].split(' ')[-1]), "")
+        if line.find(KEY_SDK_SUB_VERSION) != -1:
+            OPTIONS[KEY_SDK_SUB_VERSION] = (int(line.split('=')[-1].split(' ')[-1]), "")
+
+def ldk_main(sdk_path):
     global GLOBAL_SDK_PATH
     blacklist=['-c', '-S', '-E', '-o', '-D*', '-Os', '-g', '-U*', '-Wl,-soname,*', '-l*']
     whitelist=['-fno-exceptions', '-fno-short-enums', '-Wno-unused', '-fno-strict-aliasing',
                '-W', '*libgcc.a', '*crtend_so.o', '*crtend_android.o', '*crtbegin_dynamic.o',
                '*crtbegin_so.o']
-    GLOBAL_SDK_PATH = argv[0]
-    sdk_path = os.path.abspath(argv[0])
+    GLOBAL_SDK_PATH = sdk_path
+    sdk_path = os.path.abspath(sdk_path)
     option_summary = compiler_option_summary()
+
+    parse_sdk_version(sdk_path)
     (cflags, ldflags, arflags, exeflags) = parse_compiler_args(run_compiler(sdk_path))
 
     OPTIONS["cflags"] = refine_flags(cflags, option_summary, whitelist, blacklist)
     OPTIONS["ldflags"] = refine_flags(ldflags, option_summary, whitelist, blacklist)
     OPTIONS["exeflags"] = refine_flags(exeflags, option_summary, whitelist, blacklist)
     OPTIONS["arflags"] = (arflags, "", "")
-    
+
     generate_makefile(GLOBAL_SDK_PATH)
+    print "Done! Pls read ldk.mk"
     # for key in OPTIONS:
     #     print key + " :"
     #     print OPTIONS[key][0]
+
+def test_main():
+    os.popen("make -C test clean; make -C test")
+    print "Create test program done! Please test the program in directory test"
+
+def usage():
+    print "Usage:"
+    print "\t./ldk.py  $SDK_PATH"
+
+def main(argv):
+    test = False
+    try:
+        opts, args = getopt.getopt(argv, "t", "test")
+    except getopt.GetoptError, err:
+        usage()
+        sys.exit(2)
+
+    for o, a in opts:
+        if  o in ("-t", "--test"):
+            test = True
+        else:
+            print "Unknown option \"%s\"" % (o)
+    if len(args) == 1:
+        ldk_main(args[0])
+    else:
+        usage()
+        sys.exit(2)
+
+    if test :
+       test_main() 
 
 if __name__ == '__main__':
     main(sys.argv[1:])
