@@ -362,6 +362,27 @@ def parse_sdk_version(sdk_path):
         if line.find(KEY_SDK_SUB_VERSION) != -1:
             OPTIONS[KEY_SDK_SUB_VERSION] = (int(line.split('=')[-1].split(' ')[-1]), "")
 
+def create_symlink_callback(arg, dirname, files):
+    for f in files:
+        if f in arg:
+            cwd = os.getcwd()
+            os.chdir(dirname)
+            for t in arg[f]:
+                if os.path.exists(t) :
+                    os.remove(t)
+                os.symlink(f, t)
+            os.chdir(cwd)
+
+def create_symbol_link(sdk_path):
+    symlist = ['libpthread.so:libc.so', 'libssp.so:libc.so', 'libssp_nonshared.so:libc.so']
+    symdict = {}
+    for item in symlist:
+        target, source = item.split(':')
+        if not symdict.has_key(source):
+            symdict[source] = []
+        symdict[source] = symdict[source] + ["%s" % (target)]
+    os.path.walk(sdk_path, create_symlink_callback, symdict)
+
 def ldk_main(sdk_path):
     global GLOBAL_SDK_PATH
     blacklist=['-c', '-S', '-E', '-o', '-D*', '-Os', '-g', '-U*', '-Wl,-soname,*', '-l*']
@@ -380,6 +401,7 @@ def ldk_main(sdk_path):
     OPTIONS["exeflags"] = refine_flags(exeflags, option_summary, whitelist, blacklist)
     OPTIONS["arflags"] = (arflags, "", "")
 
+    create_symbol_link(sdk_path)
     generate_makefile(GLOBAL_SDK_PATH)
     print "Done! Pls read ldk.mk"
     # for key in OPTIONS:
