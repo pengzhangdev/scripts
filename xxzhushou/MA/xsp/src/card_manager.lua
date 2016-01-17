@@ -1,33 +1,54 @@
 local api = require("api")
+local utils = require("utils")
 local findImageTap = api.findImageInRegionFuzzyTap
+local findImageTapN = api.findImageInRegionFuzzyTapN
 local touchPos = api.touchPos
 local info = api.info
 local err = api.error
+local process = utils.process
+local flip = utils.waitingFlip
+local connection = utils.waitingConnection
 
 local module = {}
 
-function module.findCardButton()
-   --local res = findImage("card_button.png", 90, 30, 1100, 180, 1300, 0)
-   width,height = getScreenSize()
-   --keepScreen(true); 
-   local res = findImageTap("card_button.png", 60, 30, 1100, 180, 1300, 0)
-   res = findImageTap("card_sell_1.png", 60, 0, 0, width - 1, height - 1, 0)
-   --local res = findImage("card_button.png", 60, 0, 0, width - 1, height - 1, 0)
-   --snapshot("1.png", 35, 1110, 165, 1250); --全屏截图（分辨率1080*1920）
-   --keepScreen(false); 
-   --[[
-   for i, v in pairs(res) do
-      if v[1] == -1 and v[2] == -1 then
-         err("Failed to find card button")
-         return false
-      else
-         touchPos(v[1], v[2])
-         return true
-      end
+function checkCardSellButtonAndTap()
+   return findImageTap("card_sell_1.png", 60, 458, 1646, 787, 1986, 0);
+end
+
+function checkCardButtonAndTap()
+   return findImageTap("card_button.png", 60, 30, 1100, 180, 1300, 0);
+end
+
+function checkOneClickButtonAndTap()
+   return findImageTap("card_onclick.png", 60, 600, 1800, 900, 2000, 0);
+end
+
+function checkCheckBoxAndTap()
+   local res = false
+   local r = false
+   r = findImageTapN("card_checkbox.png", 60, 0, 0, 1080, 1080, 0);
+   if r == true then
+      res = true
    end
-   ]]
-   
+
    return res
+end
+
+function checkSellButtonAndTap()
+   
+end
+
+function module.sellCards()
+   local funclist = {
+      checkCardButtonAndTap,
+      flip,
+      checkCardButtonAndTap,
+      connection,
+      checkOneClickButtonAndTap,
+      flip,
+      
+   }
+   return process(funclist)
 end
 
 return module
