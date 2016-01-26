@@ -40,14 +40,13 @@ end
 
 function module.sellCards()
    local funclist = {
-      checkCardButtonAndTap,
-      flip,
-      checkCardButtonAndTap,
-      connection,
-      checkOneClickButtonAndTap,
-      flip,
-      
-   }
+      ["checkCardButtonAndTap"] = checkCardButtonAndTap,
+      ["flip"] = flip,
+      ["checkCardSellButtonAndTap"] = checkCardSellButtonAndTap,
+      ["connection"] = connection,
+      ["checkOneClickButtonAndTap"] = checkOneClickButtonAndTap,
+      ["flip"] = flip,
+   };
    return process(funclist)
 end
 

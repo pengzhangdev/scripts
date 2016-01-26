@@ -3,12 +3,12 @@ local module = {file = nil};
 local logfile = "log.txt"
 module.file = io.open(logfile)
 
-function module.info(msg)
-   sysLog("[INFO] " .. msg)
+function module.info(fmt, ...)
+   sysLog("[INFO] " .. string.format(fmt, unpack(arg)))
 end
 
-function module.error(msg)
-   toast("[ERR] " .. msg)
+function module.error(fmt, ...)
+   sysLog("[ERR] " .. string.format(fmt, unpack(arg)))
 end
 
 function module.findImageInRegionFuzzy(picname, degree, x1, y1, x2, y2, alpha)
@@ -71,17 +71,28 @@ function module.findImageInRegionFuzzyTap(picname, degree, x1, y1, x2, y2, alpha
 end
 
 function module.touchPos(x, y)
-   sysLog("touch @ x:" .. x .. ", y:" .. y);
+   module.info("touch @ x:" .. x .. ", y:" .. y);
    math.randomseed(x/y);
    id = math.random();
    touchDown(id, x, y);
-   mSleep(80);
+   module.mSleep(80);
    touchUp(id, x, y);
-   mSleep(80);
+   module.mSleep(80);
 end
 
 function module.getScreenSize()
    return getScreenSize()
+end
+
+function module.mSleep(sec)
+   mSleep(sec)
+end
+
+function module.runApp(appId)
+   if appIsRunning(appName) == 0 or isFrontApp(appName) == 0 then
+      module.info("start app(%s)", appId);
+      runApp(appId)
+   end
 end
 
 return module;
