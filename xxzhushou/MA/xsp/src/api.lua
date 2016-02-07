@@ -1,14 +1,20 @@
-local module = {file = nil};
+local module = {};
 
-local logfile = "log.txt"
-module.file = io.open(logfile)
+local logfile = "log_" .. os.date("%Y-%m-%d") .. ".txt"
+module.f = io.open(logfile, "w")
+
+function module.log(msg)
+   sysLog(msg);
+   module.f:write(msg .. "\n");
+   module.f:flush();
+end
 
 function module.info(fmt, ...)
-   sysLog("[INFO] " .. string.format(fmt, unpack(arg)))
+   module.log("[INFO ] " .. string.format(fmt, unpack(arg)))
 end
 
 function module.error(fmt, ...)
-   sysLog("[ERR] " .. string.format(fmt, unpack(arg)))
+   module.log("[ERROR] " .. string.format(fmt, unpack(arg)))
 end
 
 function module.findImageInRegionFuzzy(picname, degree, x1, y1, x2, y2, alpha)
@@ -19,9 +25,11 @@ function module.findImageInRegionFuzzy(picname, degree, x1, y1, x2, y2, alpha)
    -- alpha:
    local x, y = findImageInRegionFuzzy(picname, degree, x1, y1, x2, y2, alpha);
    if x == -1 and y == -1 then
-      module.error("findImageInRegionFuzzy failed")
+      module.error("findImageInRegionFuzzy %s failed", picname);
+   else
+      module.error("findImageInRegionFuzzy %s success", picname);
    end
-   return {{x, y}};
+   return x, y;
 end
 
 function module.findImageInRegionFuzzyN(picname, degree, x1, y1, x2, y2, width, height, alpha)
@@ -30,16 +38,24 @@ function module.findImageInRegionFuzzyN(picname, degree, x1, y1, x2, y2, width, 
    local y = 0
    while true do
       if x == 0 and y == 0 then
-         x = x1 - width
-         y = y1 - height
+         x = x1 - width;
+         y = y1;
       end
-      x = x + width
-      y = y + height
-      x, y = module.findImageInRegionFuzzy(picname, degree, x, y, x2, y2, alpha)
-      if x == -1 and y == -1 then
-         break
+      y1 = y;
+      while true do
+         x = x + width
+         y = y1;
+         x, y = module.findImageInRegionFuzzy(picname, degree, x, y, x2, y2, alpha)
+         if x == -1 and y == -1 then
+            break
+         end
+         table.insert(ret, {x, y})
       end
-      table.insert(ret, {x, y})
+      y = y1 + height;
+      x = x1 - width;
+      if y + height > y2 then
+         break;
+      end
    end
    return ret
 end
@@ -58,16 +74,29 @@ function module.findImageInRegionFuzzyTapN(picname, degree, x1, y1, x2, y2, widt
 end
 
 function module.findImageInRegionFuzzyTap(picname, degree, x1, y1, x2, y2, alpha)
-   local res = module.findImageInRegionFuzzy(picname, degree, x1, y1, x2, y2, alpha)
-   for i, v in pairs(res) do
-      if v[1] == -1 and v[2] == -1 then
-         module.error("find " .. picname .. " failed ")
-         return false
-      else
-         module.touchPos(v[1], v[2])
-         return true
-      end
+   local x, y = module.findImageInRegionFuzzy(picname, degree, x1, y1, x2, y2, alpha)
+   if x == -1 and y == -1 then
+      -- module.error("find " .. picname .. " failed ")
+      return false
+   else
+      module.touchPos(x, y)
+      return true
    end
+end
+
+function module.checkImageInRegionFuzzy(picname, degree, x1, y1, x2, y2, alpha)
+   local x, y = module.findImageInRegionFuzzy(picname, degree, x1, y1, x2, y2, alpha)
+
+   if x == -1 and y == -1 then
+      -- module.error("find " .. picname .. " failed ")
+      return false
+   else
+      return true
+   end
+end
+
+function module.findColors(color, posandcolor, degree, x1, y1, x2, y2)
+   return findMultiColorInRegionFuzzy(color, posandcolor, degree, x1, y1, x2, y2);
 end
 
 function module.touchPos(x, y)
