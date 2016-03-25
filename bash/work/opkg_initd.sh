@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/sh /etc/rc.common
 #
 # mirouter_initd.sh ---
 #
@@ -12,18 +12,15 @@
 # Change Log:
 #
 #
-command=$1
-
 waiting_and_get_ext_storage_mountpoint() {
     while true
     do
-        tmp=`mount | grep ext`
+        tmp=`mount | grep extdisks/`
         if [ -z "$tmp" ]
         then
             sleep 1
         else
-            arr=($tmp)
-            echo ${arr[2]}
+            echo `echo $tmp | cut -d ' ' -f 3`
             break
         fi
     done
@@ -31,6 +28,7 @@ waiting_and_get_ext_storage_mountpoint() {
 
 start() {
     external_path=$(waiting_and_get_ext_storage_mountpoint)
+    export LD_LIBRARY_PATH="$external_path/opkg/lib:$external_path/opkg/usr/lib"
     for f in `ls $external_path/opkg/init.d/`
     do
         $external_path/opkg/init.d/$f start $external_path
@@ -39,6 +37,7 @@ start() {
 
 stop() {
     external_path=$(waiting_and_get_ext_storage_mountpoint)
+    export LD_LIBRARY_PATH="$external_path/opkg/lib:$external_path/opkg/usr/lib"
     for f in `ls $external_path/opkg/init.d/`
     do
         $external_path/opkg/init.d/$f stop $external_path
@@ -47,22 +46,10 @@ stop() {
 
 restart() {
     external_path=$(waiting_and_get_ext_storage_mountpoint)
+    export LD_LIBRARY_PATH="$external_path/opkg/lib:$external_path/opkg/usr/lib"
     for f in `ls $external_path/opkg/init.d/`
     do
         $external_path/opkg/init.d/$f restart $external_path
     done
 }
 
-case $command in
-    (start)
-        start
-        ;;
-    (stop)
-        stop
-        ;;
-    (restart)
-        restart
-        ;;
-    (*)
-        ;;
-esac
