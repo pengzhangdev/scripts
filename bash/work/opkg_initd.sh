@@ -17,14 +17,14 @@ command=$1
 waiting_and_get_ext_storage_mountpoint() {
     while true
     do
-        tmp=`mount | grep extdisk`
+        tmp=`mount | grep ext`
         if [ -z "$tmp" ]
         then
             sleep 1
         else
-            arr=$(tmp)
-            echo ${arr[3]}
-            return ${arr[3]}
+            arr=($tmp)
+            echo ${arr[2]}
+            break
         fi
     done
 }
