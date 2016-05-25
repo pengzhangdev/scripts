@@ -1,0 +1,23 @@
+#! /bin/bash
+
+function usage
+{
+    echo "retry commands"
+}
+
+function run
+{
+    local ret=1
+    while [[ $ret != 0 ]]
+    do
+        $@
+        ret=$?
+    done
+}
+
+if [[ !# == 0 ]]; then
+    usage
+fi
+
+run $@
+
