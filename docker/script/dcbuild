@@ -1,0 +1,94 @@
+#! /bin/bash
+#
+# dcbuild.sh ---
+#
+# Filename: dcbuild.sh
+# Description:
+# Author: Werther Zhang
+# Maintainer:
+# Created: 二  5月 31 14:33:21 2016 (+0800)
+#
+
+# Change Log:
+#
+#
+
+wdir=`pwd`
+
+function gettop
+{
+    local TOPFILE=build/core/envsetup.mk
+    if [ -n "$TOP" -a -f "$TOP/$TOPFILE" ] ; then
+        echo $TOP
+    else
+        if [ -f $TOPFILE ] ; then
+            # The following circumlocution (repeated below as well) ensures
+            # that we record the true directory name and not one that is
+            # faked up with symlink names.
+            PWD= /bin/pwd
+        else
+            # We redirect cd to /dev/null in case it's aliased to
+            # a command that prints something as a side-effect
+            # (like pushd)
+            local HERE=$PWD
+            T=
+            while [ \( ! \( -f $TOPFILE \) \) -a \( $PWD != "/" \) ]; do
+                cd .. > /dev/null
+                T=`PWD= /bin/pwd`
+            done
+            cd $HERE > /dev/null
+            if [ -f "$T/$TOPFILE" ]; then
+                echo $T
+            fi
+        fi
+    fi
+}
+
+source_root=$(gettop)
+if [ ! "source_root" ]; then
+    echo "Please setup the env for build system"
+    exit 1;
+fi
+
+echo "source code root dir : " $source_root
+
+# waiting confirm
+sleep 5
+
+ccache_dir=$source_root/.ccache
+
+# create ccache dir
+if [ ! -d $ccache_dir ]; then
+    pushd $source_root > /dev/null
+    prebuilts/misc/linux-x86/ccache/ccache -M 10G
+    popd > /dev/null
+fi
+
+function croot()
+{
+    R=$(gettop)
+    if [ ! "R"]; then
+        echo "Please setup the env for build system"
+    else
+        pushd $R
+    fi
+}
+
+java_home=""
+if [[ $source_root =~ "/work/COS" ]];then
+    java_home="/usr/lib/jvm/java-6-oracle"
+fi
+
+if [[ $source_root =~ "/work/ANDROID" ]];then
+    java_home="/usr/lib/jvm/java-7-openjdk-amd64"
+fi
+
+
+# run in docker
+cmd="cd $source_root && . setbuildenv && export JAVA_HOME=$java_home && export USE_CCACHE=1 && export CCACHE_DIR=/root/.ccache && cd $wdir &&  $*;"
+echo "run command in docker: " $cmd
+# with -t -i, you can stop container with ctrl+c
+# with -v, map local directory to container
+# liantong/cos:latest, the container name
+# the reset is the command passing to docker
+docker run -t -i -v /work:/work -v $source_root/.ccache:/root/.ccache liantong/cos:latest bash -c "$cmd"
