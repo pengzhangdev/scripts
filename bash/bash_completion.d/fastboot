@@ -1,0 +1,131 @@
+_fastboot_util_complete_local_file()
+{
+    local file xspec i j IFS=$'\n'
+    local -a dirs files
+
+    file=$1
+    xspec=$2
+
+    # Since we're probably doing file completion here, don't add a space after.
+    if [[ $(type -t compopt) = "builtin" ]]; then
+        compopt -o plusdirs
+        if [[ "${xspec}" == "" ]]; then
+            COMPREPLY=( ${COMPREPLY[@]:-} $(compgen -f -- "${cur}") )
+        else
+            compopt +o filenames
+            COMPREPLY=( ${COMPREPLY[@]:-} $(compgen -f -X "${xspec}" -- "${cur}") )
+        fi
+    else
+        # Work-around for shells with no compopt
+
+        dirs=( $(compgen -d -- "${cur}" ) )
+
+        if [[ "${xspec}" == "" ]]; then
+            files=( ${COMPREPLY[@]:-} $(compgen -f -- "${cur}") )
+        else
+            files=( ${COMPREPLY[@]:-} $(compgen -f -X "${xspec}" -- "${cur}") )
+        fi
+
+        COMPREPLY=( $(
+            for i in "${files[@]}"; do
+                local skip=
+                for j in "${dirs[@]}"; do
+                    if [[ $i == $j ]]; then
+                        skip=1
+                        break
+                    fi
+                done
+                [[ -n $skip ]] || printf "%s\n" "$i"
+            done
+        ))
+
+        COMPREPLY=( ${COMPREPLY[@]:-} $(
+            for i in "${dirs[@]}"; do
+                printf "%s/\n" "$i"
+            done
+        ))
+    fi
+}
+
+_fastboot_cmd_flash()
+{
+    local i curr
+    
+    i=$1
+    
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    if [[ $COMP_CWORD == $(($i+1)) ]]; then
+        _fastboot_util_complete_local_file "${cur}"
+    fi
+}
+
+_fastboot()  
+{
+    local cur prev opts where
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    OPTIONS="-w -u -s -l -p -c -i -b -n -S"
+    COMMAND="format erase reboot boot flash devices reboot-bootloader"
+    partitions="boot system recovery userdata cache dvbdata systeminfo_ro systeminfo_rw"
+    
+    for ((i=1; i <= COMP_CWORD; i++)); do
+        cur="${COMP_WORDS[i]}"
+        case "${cur}" in
+            -*)
+                where=OPTIONS
+                ;;
+            *)
+                where=COMMAND
+                break
+                ;;
+        esac
+    done
+    
+    case "${where}" in
+    OPTIONS)
+        COMPREPLY=( $(compgen -W "$OPTIONS $COMMAND" -- "$cur") )
+        ;;
+    COMMAND)
+        if [[ $i -eq $COMP_CWORD ]]; then
+            COMPREPLY=( $(compgen -W "$COMMAND" -- "$cur") )
+        else
+            i=$((i+1))
+            case "${cur}" in
+            reboot | devices | reboot-bootloader)
+                COMPREPLY=()
+                return 0
+                ;;
+            flash)
+                if [[ $COMP_CWORD == $i ]]; then
+                    COMPREPLY=( $(compgen -W "${partitions}" -- "${COMP_WORDS[i]}") )
+                else
+                    _fastboot_cmd_flash $i
+                fi
+                return 0
+                ;;
+            boot)
+                if [[ $COMP_CWORD == $i ]]; then
+                    COMPREPLY=( $(compgen -o filenames -G "${cur}*.img"))
+                fi
+                return 0
+                ;;
+            format)
+                if [[ $COMP_CWORD == $i ]]; then
+                    COMPREPLY=( $(compgen -W "${partitions}" -- "${COMP_WORDS[i]}") )
+                fi
+                return 0
+                ;;
+            erase)
+                if [[ $COMP_CWORD == $i ]]; then
+                    COMPREPLY=( $(compgen -W "${partitions}" -- "${COMP_WORDS[i]}") )
+                fi
+                return 0
+                ;;
+            esac
+        fi
+    esac
+
+    return 0
+}
+complete -F _fastboot fastboot
