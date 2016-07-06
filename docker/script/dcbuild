@@ -59,9 +59,10 @@ ccache_dir=$source_root/.ccache
 
 # create ccache dir
 if [ ! -d $ccache_dir ]; then
-    pushd $source_root > /dev/null
-    prebuilts/misc/linux-x86/ccache/ccache -M 10G
-    popd > /dev/null
+    export CCACHE_DIR=$ccache_dir
+#    pushd $source_root > /dev/null
+    ccache -M 10G
+#    popd > /dev/null
 fi
 
 function croot()
@@ -85,10 +86,10 @@ fi
 
 
 # run in docker
-cmd="cd $source_root && . setbuildenv && export JAVA_HOME=$java_home && export USE_CCACHE=1 && export CCACHE_DIR=/root/.ccache && cd $wdir &&  $*;"
+cmd="cd $source_root && . setbuildenv && export JAVA_HOME=$java_home && export PATH=$java_home/bin/:$PATH && export USE_CCACHE=1 && export CCACHE_DIR=/root/.ccache && cd $wdir &&  $*;"
 echo "run command in docker: " $cmd
 # with -t -i, you can stop container with ctrl+c
 # with -v, map local directory to container
 # liantong/cos:latest, the container name
 # the reset is the command passing to docker
-docker run -t -i -v /work:/work -v $source_root/.ccache:/root/.ccache liantong/cos:latest bash -c "$cmd"
+docker run -t -i -v /work:/work -v $source_root/.ccache:/root/.ccache --rm liantong/cos:latest bash -c "$cmd"

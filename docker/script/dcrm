@@ -17,4 +17,5 @@
 tags="Exited"
 
 
-docker ps -a | grep '$tags' | awk '{print $1}' | xargs --no-run-if-empty docker rm
+#docker ps -a | grep '$tags' | awk '{print $1}' | xargs --no-run-if-empty docker rm
+docker rm $(docker ps -q -f status=exited)
