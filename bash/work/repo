@@ -18,7 +18,14 @@ function check_repo_url()
         matched=`git config --get remote.origin.url | grep wertherzhang | wc -l`
         popd > /dev/null
         if [[ $matched > 0 ]]; then
-            return 1
+            hour=`date +%H`
+            cached=`cat ${current_wp}/.hour`
+            if [[ $hour != $cached ]]; then
+                echo $hour > ${current_wp}/.hour
+                return 1
+            else
+                return 0
+            fi
         else
             return 0
         fi
