@@ -1,0 +1,25 @@
+#! /bin/bash
+#
+# dcbuild.sh ---
+#
+# Filename: dcbuild.sh
+# Description:
+# Author: Werther Zhang
+# Maintainer:
+# Created: 二  5月 31 14:33:21 2016 (+0800)
+#
+
+# Change Log:
+#
+#
+
+wdir=`pwd`
+
+# run in docker
+cmd="cd /home/PokemonGo-Bot;source ./bin/activate; ./run.sh;"
+echo "run command in docker: " $cmd
+# with -t -i, you can stop container with ctrl+c
+# with -v, map local directory to container
+# liantong/cos:latest, the container name
+# the reset is the command passing to docker
+docker run -t -i -v ~/git/PokemonGo-Bot:/home/PokemonGo-Bot --rm pokemon-bot:latest bash -c "$cmd"
