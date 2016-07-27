@@ -1,0 +1,10 @@
+FROM ubuntu:14.04
+MAINTAINER Carl Tao <carltao@gmail.com>
+
+RUN apt-get update && apt-get -y upgrade
+
+
+RUN apt-get -y install python2.7 pip git python-virtualenv python-protobuf || echo Ignore colord error
+
+
+CMD ["bash"]
