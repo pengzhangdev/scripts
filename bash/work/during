@@ -53,5 +53,5 @@ do
     $cmd &
     child_pid=$!
 
-    sleep 1
+    sleep 60
 done
