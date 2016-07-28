@@ -1,0 +1,57 @@
+#! /bin/bash
+#
+# during.sh ---
+#
+# Filename: during.sh
+# Description:
+# Author: Werther Zhang
+# Maintainer:
+# Created: Thu Jul 28 10:36:02 2016 (+0800)
+#
+
+# Change Log:
+#
+#
+
+# usage: during 5-8 commands
+# loop running commands during hour 5 - 8
+
+args=($@)
+
+date_str=${args[0]}
+cmd_len=${#args[@]}
+for ((i=1; i<cmd_len;i++))
+do
+    cmd="$cmd ${args[$i]}"
+done
+
+#echo $date_str
+#echo $cmd
+date_arr=(${date_str//-/ })
+start_hour=${date_arr[0]}
+end_hour=${date_arr[1]}
+echo "start hour $start_hour end hour $end_hour"
+
+child_pid=0
+while [ 1 ]
+do
+    hour=`date +%H`
+
+    if [ $hour -lt $start_hour -o $hour -gt $end_hour ]; then
+        echo "hour: $hour"
+        break;
+    fi
+
+    n=`ps -p $child_pid | grep $child_pid | wc -l`
+    if [ $n -eq 1 ]; then
+        # echo "running"
+        sleep 300;
+        continue
+    fi
+
+    # echo "run commands"
+    $cmd &
+    child_pid=$!
+
+    sleep 1
+done
