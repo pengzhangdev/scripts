@@ -84,9 +84,16 @@ if [[ $source_root =~ "/work/ANDROID" ]];then
     java_home="/usr/lib/jvm/java-7-openjdk-amd64"
 fi
 
+cmd=$*
+
+if [[ $cmd == mm* ]]; then
+    cmd="cd $source_root && . setbuildenv && export JAVA_HOME=$java_home && export PATH=$java_home/bin/:$PATH && export USE_CCACHE=1 && export CCACHE_DIR=/root/.ccache && cd $wdir &&  $*;"
+else
+    cmd="cd $source_root && export JAVA_HOME=$java_home && export PATH=$java_home/bin/:$PATH && export USE_CCACHE=1 && export CCACHE_DIR=/root/.ccache && cd $wdir &&  $*;"
+fi
 
 # run in docker
-cmd="cd $source_root && export JAVA_HOME=$java_home && export PATH=$java_home/bin/:$PATH && export USE_CCACHE=1 && export CCACHE_DIR=/root/.ccache && cd $wdir &&  $*;"
+#cmd="cd $source_root && export JAVA_HOME=$java_home && export PATH=$java_home/bin/:$PATH && export USE_CCACHE=1 && export CCACHE_DIR=/root/.ccache && cd $wdir &&  $*;"
 echo "run command in docker: " $cmd
 # with -t -i, you can stop container with ctrl+c
 # with -v, map local directory to container
