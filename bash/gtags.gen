@@ -1,0 +1,42 @@
+#! /bin/bash
+
+export GTAGSFORCECPP=""
+
+SOURCECODE=$PWD
+
+echo > gtags.files
+
+declare -a excludepath=("$SOURCECODE/out/" "$SOURCECODE/prebuilts/" "$SOURCECODE/build/" "$SOURCECODE/development/" "$SOURCECODE/packages/" "$SOURCECODE/sdk/" "$SOURCECODE/tools" "$SOURCECODE/external/clang/" "$SOURCECODE/ndk/" "$SOURCECODE/toolchain/" "$SOURCECODE/platform_testing/" "$SOURCECODE/docs/" "$SOURCECODE/cts/" "$SOURCECODE/developers/")
+
+find $SOURCECODE -type f \
+    -name "*.h" -print0 -o -name "*.hpp" -print0 -o -name "*.c" -print0 -o \
+    -name "*.cpp" -print0 -o -name "*.S" -print0 -o -name "*.s" -print0 -o \
+    -name "*.java" -print0 \
+    | while IFS= read -r -d $'\0' fileName; do
+
+    skip=0
+    if [ -h "$fileName" ]; then
+        continue;
+    fi
+
+    if [[ $(echo $fileName | wc -m) -gt 100 ]]; then
+        continue;
+    fi
+
+    for dir in ${excludepath[@]}
+    do
+        if [[ $fileName == $dir* ]]; then
+            skip=1;
+            break;
+        fi
+    done
+
+    if [[ $skip == 1 ]]; then
+        continue;
+    fi
+
+    echo "$fileName" >> gtags.files
+done
+
+gtags --skip-unreadable -q -f gtags.files
+
