@@ -1,0 +1,70 @@
+#! /bin/bash
+#
+# smbcp.sh ---
+#
+# Filename: smbcp.sh
+# Description:
+# Author: Werther Zhang
+# Maintainer:
+# Created: Fri Sep 23 18:13:00 2016 (+0800)
+#
+
+# Change Log:
+#
+#
+
+smb_path=$1
+target_path=$2
+username=ltuser
+password=Aa123456
+guest_mode=0
+ret=0
+
+if [ -z smb_path -o -z target_path ]; then
+    echo "smbcp smb://xxx/ dir"
+fi
+
+if [[ $smb_path == *10.27.16.45* ]]; then
+    guest_mode=0
+else
+    guest_mode=1
+fi
+
+pushd $target_path > /dev/null
+file_name=`basename $smb_path`
+target_file=$target_path/$file_name
+if [ -f $target_file ]; then
+    rm $target_file
+fi
+
+if [ $guest_mode -eq 0 ]; then
+    smbget -U -u $username -p $password $smb_path
+else
+    smbget -U -a $smb_path
+fi
+ret=$?
+
+if [ $ret -eq 1 ]; then
+    # dir
+    mkdir $file_name
+fi
+
+if [ $guest_mode -eq 0 -a $ret -eq 1 ]; then
+    pushd $file_name > /dev/null
+    smbget -R -u $username -p $password $smb_path
+    ret=$?
+    popd > /dev/null
+elif [ $ret -eq 1 ]; then
+    pushd $file_name > /dev/null
+    smbget -R -a $smb_path
+    ret=$?
+    popd > /dev/null
+fi
+
+if [[ $ret != 0 ]]; then
+    if [ -d $smb_path ]; then
+        rmdir $smb_path
+    fi
+fi
+
+popd > /dev/null
