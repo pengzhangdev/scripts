@@ -14,10 +14,11 @@
 #
 
 wdir=`pwd`
+SOURCECODEPATH="/work/"
 
 function gettop
 {
-    local TOPFILE=build/core/envsetup.mk
+    local TOPFILE=$1
     if [ -n "$TOP" -a -f "$TOP/$TOPFILE" ] ; then
         echo $TOP
     else
@@ -44,8 +45,12 @@ function gettop
     fi
 }
 
-source_root=$(gettop)
-if [ ! "source_root" ]; then
+source_root=$(gettop "platform/android/build/core/envsetup.mk")
+if [ -z "$source_root" ]; then
+    source_root=$(gettop "build/core/envsetup.mk")
+fi
+
+if [ -z "$source_root" ]; then
     echo "Please setup the env for build system"
     exit 1;
 fi
@@ -56,6 +61,7 @@ echo "source code root dir : " $source_root
 sleep 5
 
 ccache_dir=$source_root/.ccache
+
 
 # create ccache dir
 if [ ! -d $ccache_dir ]; then
@@ -76,27 +82,28 @@ function croot()
 }
 
 java_home=""
-if [[ $source_root =~ "/work/COS" ]];then
+if [[ $source_root =~ "$SOURCECODEPATH/COS" ]];then
     java_home="/usr/lib/jvm/java-6-oracle"
 fi
 
-if [[ $source_root =~ "/work/ANDROID" ]];then
+if [[ $source_root =~ "$SOURCECODEPATH/ANDROID" ]];then
     java_home="/usr/lib/jvm/java-7-openjdk-amd64"
 fi
 
 cmd=$*
+notifymsg=$cmd
 
 if [[ $cmd == mm* ]]; then
-    cmd="cd $source_root && . setbuildenv && export JAVA_HOME=$java_home && export PATH=$java_home/bin/:$PATH && export USE_CCACHE=1 && export CCACHE_DIR=/root/.ccache && cd $wdir &&  $*;"
+    cmd="cd $source_root && . setbuildenv && export JAVA_HOME=$java_home && export PATH=$java_home/bin/:$PATH && export USE_CCACHE=1 && export CCACHE_DIR=/tmp/.ccache && cd $wdir &&  $*;"
 else
-    cmd="cd $source_root && export JAVA_HOME=$java_home && export PATH=$java_home/bin/:$PATH && export USE_CCACHE=1 && export CCACHE_DIR=/root/.ccache && cd $wdir &&  $*;"
+    cmd="cd $source_root && export JAVA_HOME=$java_home && export PATH=$java_home/bin/:$PATH && export USE_CCACHE=1 && export CCACHE_DIR=/tmp/.ccache && cd $wdir &&  $*;"
 fi
 
 # run in docker
 #cmd="cd $source_root && export JAVA_HOME=$java_home && export PATH=$java_home/bin/:$PATH && export USE_CCACHE=1 && export CCACHE_DIR=/root/.ccache && cd $wdir &&  $*;"
 echo "run command in docker: " $cmd
+
 # with -t -i, you can stop container with ctrl+c
-# with -v, map local directory to container
-# liantong/cos:latest, the container name
-# the reset is the command passing to docker
-docker run -t -i -v /work:/work -v $source_root/.ccache:/root/.ccache --rm liantong/cos:latest bash -c "$cmd"
+docker run --user root -t -i -v $SOURCECODEPATH:$SOURCECODEPATH -v $source_root/.ccache:/tmp/.ccache --rm liantong/cos:latest bash -c "$cmd"
+
+notify-send -t 60000 "docker: $notifymsg done!"
