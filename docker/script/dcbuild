@@ -90,6 +90,10 @@ if [[ $source_root =~ "$SOURCECODEPATH/ANDROID" ]];then
     java_home="/usr/lib/jvm/java-7-openjdk-amd64"
 fi
 
+if [[ -f $source_root/bootstrap.bash ]]; then
+    java_home="/usr/lib/jvm/java-8-openjdk-amd64"
+fi
+
 cmd=$*
 notifymsg=$cmd
 
